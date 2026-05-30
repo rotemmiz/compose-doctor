@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>compose-doctor — a deterministic health check for Jetpack Compose</title>
+<meta name="description" content="A deterministic 0–100 health score for Android Jetpack Compose. Runs detekt + compose-rules, gives an agent a structured fix loop, and gates your PRs." />
+<style>
+  :root{
+    --bg:#ffffff; --ink:#0f172a; --muted:#64748b; --line:#e6e8ee;
+    --green:#10b981; --amber:#f59e0b; --red:#ef4444; --accent:#0ea5a4;
+    --term:#0b1020; --term-ink:#e2e8f0; --term-dim:#7c8aa5;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent); text-decoration:none}
+  a:hover{text-decoration:underline}
+  code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+  .wrap{max-width:980px; margin:0 auto; padding:0 22px}
+  .btn{display:inline-flex; align-items:center; gap:8px; padding:11px 18px; border-radius:10px;
+    border:1px solid var(--line); font-weight:600; font-size:15px}
+  .btn.primary{background:var(--ink); color:#fff; border-color:var(--ink)}
+  .btn.primary:hover{background:#1e293b; text-decoration:none}
+  .btn:hover{text-decoration:none; border-color:#cbd5e1}
+
+  /* nav */
+  nav{display:flex; align-items:center; justify-content:space-between; padding:20px 0}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px}
+  .brand .dot{font-size:20px}
+  .nav-links{display:flex; gap:18px; align-items:center; font-size:15px}
+  .nav-links a{color:var(--muted)}
+  .nav-links a:hover{color:var(--ink)}
+
+  /* hero */
+  header{border-bottom:1px solid var(--line)}
+  .hero{display:grid; grid-template-columns:1.05fr 1fr; gap:40px; align-items:center; padding:48px 0 64px}
+  .hero h1{font-size:46px; line-height:1.07; letter-spacing:-.02em; margin:0 0 16px}
+  .hero p.lead{font-size:18px; color:var(--muted); margin:0 0 26px; max-width:46ch}
+  .cta{display:flex; gap:12px; flex-wrap:wrap}
+  .pill{display:inline-block; font-size:13px; font-weight:600; color:var(--accent);
+    background:#ecfeff; border:1px solid #cffafe; padding:4px 10px; border-radius:999px; margin-bottom:18px}
+
+  /* terminal */
+  .term{background:var(--term); border-radius:var(--radius); padding:0; overflow:hidden;
+    box-shadow:0 24px 60px -28px rgba(2,12,40,.45); border:1px solid #0a1530}
+  .term-bar{display:flex; gap:7px; align-items:center; padding:12px 14px; border-bottom:1px solid #15203f}
+  .term-bar .c{width:11px; height:11px; border-radius:50%}
+  .term-bar .c.r{background:#ff5f57}.term-bar .c.y{background:#febc2e}.term-bar .c.g{background:#28c840}
+  .term-bar .t{margin-left:8px; color:var(--term-dim); font-size:12px}
+  .term-body{padding:16px 18px; min-height:280px; font-size:13.5px; color:var(--term-ink)}
+  .term-body .line{white-space:pre-wrap; opacity:0; transform:translateY(2px);
+    animation:rise .25s ease forwards}
+  @keyframes rise{to{opacity:1; transform:none}}
+  .term .muted{color:var(--term-dim)}
+  .term .ok{color:#34d399}.term .warn{color:#fbbf24}.term .err{color:#f87171}
+  .cursor{display:inline-block; width:8px; height:15px; background:#34d399; vertical-align:-2px;
+    margin-left:2px; animation:blink 1s steps(2) infinite}
+  @keyframes blink{50%{opacity:0}}
+
+  .scorewrap{display:flex; align-items:baseline; gap:12px; margin:2px 0 12px}
+  .score{font-size:30px; font-weight:800; letter-spacing:-.02em; transition:color .3s}
+  .scorelabel{font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--term-dim)}
+  .bar{height:7px; background:#15203f; border-radius:999px; overflow:hidden; margin-bottom:14px}
+  .bar > i{display:block; height:100%; width:72%; background:var(--green); border-radius:999px;
+    transition:width .5s ease, background .3s}
+
+  /* sections */
+  section{padding:56px 0; border-bottom:1px solid var(--line)}
+  section h2{font-size:26px; letter-spacing:-.01em; margin:0 0 8px}
+  section .sub{color:var(--muted); margin:0 0 22px; max-width:60ch}
+  pre.code{background:#0b1020; color:#e2e8f0; padding:16px 18px; border-radius:12px; overflow:auto;
+    font-size:13.5px; line-height:1.6; margin:0}
+  pre.code .k{color:#7dd3fc}.pre .s{color:#86efac}
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:8px}
+  .card{border:1px solid var(--line); border-radius:var(--radius); padding:20px}
+  .card h3{margin:0 0 6px; font-size:16px}
+  .card p{margin:0; color:var(--muted); font-size:14.5px}
+  .step{font-size:13px; font-weight:700; color:var(--accent); letter-spacing:.04em}
+  .note{font-size:13.5px; color:var(--muted); margin-top:12px}
+  .kbd{font-family:ui-monospace,monospace; background:#f1f5f9; border:1px solid var(--line);
+    border-bottom-width:2px; border-radius:6px; padding:2px 7px; font-size:13px}
+
+  footer{padding:34px 0 60px; color:var(--muted); font-size:14px}
+  footer .row{display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap}
+  footer a{color:var(--muted)} footer a:hover{color:var(--ink)}
+
+  svg.gh{width:18px; height:18px; fill:currentColor}
+  @media (max-width:760px){
+    .hero{grid-template-columns:1fr; padding:30px 0 44px}
+    .hero h1{font-size:36px}
+    .grid3{grid-template-columns:1fr}
+    .nav-links a:not(.btn){display:none}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <nav>
+      <div class="brand"><span class="dot">🩺</span> compose-doctor</div>
+      <div class="nav-links">
+        <a href="#install">Install</a>
+        <a href="#skill">Skill</a>
+        <a href="#agent">Agent</a>
+        <a class="btn" href="https://github.com/rotemmiz/compose-doctor" target="_blank" rel="noopener">
+          <svg class="gh" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <span class="pill">React Doctor, for Jetpack Compose</span>
+      <h1>Your agent writes Compose.<br>This scores&nbsp;it.</h1>
+      <p class="lead">A deterministic <strong>0–100 health score</strong> for Android Jetpack Compose —
+        powered by detekt&nbsp;+&nbsp;compose-rules. Gives a coding agent a structured fix loop, and gates your PRs.</p>
+      <div class="cta">
+        <a class="btn primary" href="https://github.com/rotemmiz/compose-doctor" target="_blank" rel="noopener">
+          <svg class="gh" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          View on GitHub
+        </a>
+        <a class="btn" href="#install">Get started ↓</a>
+      </div>
+    </div>
+
+    <div class="term" aria-hidden="true">
+      <div class="term-bar"><span class="c r"></span><span class="c y"></span><span class="c g"></span>
+        <span class="t">compose-doctor — fix loop</span></div>
+      <div class="term-body">
+        <div class="scorewrap">
+          <span class="score" id="score">72</span>
+          <span class="scorelabel" id="label">/ 100 · needs work</span>
+        </div>
+        <div class="bar"><i id="bar"></i></div>
+        <div id="log"></div>
+        <span class="cursor"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="install">
+  <div class="wrap">
+    <div class="step">01 · INSTALL</div>
+    <h2>Add the Gradle plugin</h2>
+    <p class="sub">Apply it to any module with Compose source, then run the task. It applies detekt + the
+      compose-rules ruleset, scores the findings, and writes a machine-readable report.</p>
+<pre class="code"><span class="k">// build.gradle.kts</span>
+plugins {
+    id(<span style="color:#86efac">"dev.composedoctor"</span>) version <span style="color:#86efac">"0.1.0"</span>
+}
+
+<span class="k">// then:</span>
+$ ./gradlew composeDoctor
+<span class="muted" style="color:#7c8aa5">→ build/reports/compose-doctor/score.json   (score, byRule plan, findings)</span>
+<span class="muted" style="color:#7c8aa5">→ build/reports/detekt/detekt.sarif         (precise locations, code-scanning)</span></pre>
+    <p class="note">Pre-release: until it's on the Gradle Plugin Portal, consume it from source via a
+      composite build — see <a href="https://github.com/rotemmiz/compose-doctor/blob/main/docs/TRY-IT-PLAYGROUND.md">TRY-IT-PLAYGROUND.md</a>.</p>
+  </div>
+</section>
+
+<section id="skill">
+  <div class="wrap">
+    <div class="step">02 · CLAUDE CODE SKILL</div>
+    <h2>Run the <code>/compose-doctor</code> skill</h2>
+    <p class="sub">Drop the skill into Claude Code, then invoke it — it knows how to run the task, read the
+      report, and fix the highest-value rule first.</p>
+<pre class="code"><span class="k"># install the skill</span>
+$ cp -r skill/compose-doctor ~/.claude/skills/compose-doctor
+
+<span class="k"># then in Claude Code, just type:</span>
+/compose-doctor</pre>
+    <p class="note">Also works with Cursor &amp; Codex — point your agent rules at
+      <a href="https://github.com/rotemmiz/compose-doctor/blob/main/skill/compose-doctor/SKILL.md">skill/compose-doctor/SKILL.md</a>.</p>
+  </div>
+</section>
+
+<section id="agent">
+  <div class="wrap">
+    <div class="step">03 · AUTONOMOUS AGENT</div>
+    <h2>Let an agent raise the score</h2>
+    <p class="sub">The score is deterministic and unique-rule based, so it's a clean reward signal. Point an
+      agent at it and let it close the loop.</p>
+<pre class="code"><span class="k"># prompt your agent:</span>
+"Run compose-doctor and raise the score by fixing the findings,
+ one rule at a time. Verify the build still compiles, and don't
+ suppress anything — fix the cause."</pre>
+    <div class="grid3">
+      <div class="card"><h3>① Run</h3><p><code>./gradlew composeDoctor</code> → read <code>score.json</code>.</p></div>
+      <div class="card"><h3>② Fix</h3><p>Take <code>byRule[0]</code> (best score-per-fix), clear every instance.</p></div>
+      <div class="card"><h3>③ Re-run</h3><p>Watch <code>delta.fixedRules</code> and the score climb. Repeat.</p></div>
+    </div>
+    <p class="note">The full loop, the <code>score.json</code> contract, and the fix-don't-suppress rule are in
+      <a href="https://github.com/rotemmiz/compose-doctor/blob/main/docs/AGENT-HARNESS.md">AGENT-HARNESS.md</a>.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="row">
+      <div>🩺 <strong>compose-doctor</strong> — deterministic Compose health, for humans and agents.</div>
+      <div>
+        <a href="https://github.com/rotemmiz/compose-doctor">GitHub</a> ·
+        <a href="https://github.com/rotemmiz/compose-doctor/blob/main/docs/RULES.md">Rules</a> ·
+        <a href="https://github.com/rotemmiz/compose-doctor/blob/main/docs/AGENT-HARNESS.md">Agent harness</a> ·
+        <a href="https://github.com/rotemmiz/compose-doctor/blob/main/LICENSE">MIT</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var start = 72;
+  // pseudo fix run: [ruleId, severity, newScore]
+  var steps = [
+    ["RememberMissing","err",74],
+    ["MutableStateParam","err",76],
+    ["ViewModelInjection","err",78],
+    ["MultipleEmitters","err",80],
+    ["ContentEmitterReturningValues","err",82],
+    ["LambdaParameterInRestartableEffect","err",84],
+    ["ModifierMissing","warn",85],
+    ["ComposableParamOrder","warn",86],
+    ["UnstableCollections","warn",87],
+    ["SwallowedException","err",89]
+  ];
+  var scoreEl=document.getElementById("score"),
+      labelEl=document.getElementById("label"),
+      barEl=document.getElementById("bar"),
+      logEl=document.getElementById("log");
+
+  function tier(s){ return s>=75 ? ["#34d399","great"] : s>=50 ? ["#fbbf24","needs work"] : ["#f87171","critical"]; }
+  function setScore(s){
+    var t=tier(s);
+    scoreEl.textContent=s; scoreEl.style.color=t[0];
+    labelEl.textContent="/ 100 · "+t[1];
+    barEl.style.width=s+"%"; barEl.style.background=t[0];
+  }
+  function line(html){ var d=document.createElement("div"); d.className="line"; d.innerHTML=html; logEl.appendChild(d); }
+
+  function run(){
+    logEl.innerHTML=""; setScore(start);
+    line('<span class="muted">$</span> ./gradlew composeDoctor');
+    line('<span class="muted">compose-doctor — 72/100 · </span><span class="warn">NEEDS_WORK</span>');
+    line('<span class="muted">9 errors · 19 warnings · 34 findings</span>');
+    line('&nbsp;');
+    var i=0;
+    (function next(){
+      if(i>=steps.length){
+        setTimeout(function(){
+          line('&nbsp;');
+          line('<span class="ok">✔ '+steps[steps.length-1][2]+'/100 · GREAT</span>');
+        },500);
+        setTimeout(run, 4200);
+        return;
+      }
+      var st=steps[i++], delta = (st[1]==="err") ? "+2" : "+1";
+      line('<span class="ok">✓</span> fixed <span>'+st[0]+'</span> '
+           +'<span class="muted">'+("                                ".slice(0, Math.max(2,30-st[0].length)))+'</span>'
+           +'<span class="ok">'+delta+'</span> <span class="muted">→ '+st[2]+'</span>');
+      setScore(st[2]);
+      setTimeout(next, 760);
+    })();
+  }
+  setScore(start);
+  run();
+})();
+</script>
+</body>
+</html>

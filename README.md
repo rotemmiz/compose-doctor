@@ -124,13 +124,21 @@ It comments a sticky **🩺 compose-doctor — NN/100** summary on the PR.
 
 ## Agent skill
 
-[`skill/compose-doctor/SKILL.md`](skill/compose-doctor/SKILL.md) teaches a coding agent (Claude
+[`skills/compose-doctor/SKILL.md`](skills/compose-doctor/SKILL.md) teaches a coding agent (Claude
 Code, Cursor, Codex) to run the task, read the SARIF, and fix the highest-value rule iteratively —
-plus Compose best-practices to avoid the findings up front. Install:
+plus Compose best-practices to avoid the findings up front.
 
-```bash
-cp -r skill/compose-doctor .claude/skills/compose-doctor
+**Claude Code — install as a plugin** (bundles the skill + a `/compose-doctor` command):
+
+```text
+/plugin marketplace add rotemmiz/compose-doctor
+/plugin install compose-doctor
 ```
+
+The skill is **self-bootstrapping**: if a module has no `composeDoctor` task yet, it runs the
+bundled [`init/compose-doctor.init.gradle.kts`](init/compose-doctor.init.gradle.kts) to apply the
+plugin without editing any build file. Other agents (or a manual copy) can point at the skill
+directly — see [`skills/README.md`](skills/README.md).
 
 The full agent loop, the `score.json` contract, and the memory/integrity model are specified in
 [docs/AGENT-HARNESS.md](docs/AGENT-HARNESS.md).

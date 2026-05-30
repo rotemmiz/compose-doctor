@@ -7,3 +7,4 @@ local.properties
 .kotlin/
 .compose-doctor/
 !gradle/wrapper/gradle-wrapper.jar
+.env
