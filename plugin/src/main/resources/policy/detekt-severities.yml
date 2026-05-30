@@ -1,0 +1,12 @@
+# compose-doctor error tier for the general detekt rules. Applied unless detekt level = as-is.
+potential-bugs:
+  severity: error
+coroutines:
+  SleepInsteadOfDelay:
+    severity: error
+exceptions:
+  SwallowedException:
+    severity: error
+empty-blocks:
+  EmptyCatchBlock:
+    severity: error

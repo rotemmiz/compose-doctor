@@ -30,6 +30,12 @@ abstract class ComposeDoctorTask : DefaultTask() {
     @get:Input
     abstract val rulesetVersion: Property<String>
 
+    @get:Input
+    abstract val detektLevel: Property<EngineLevel>
+
+    @get:Input
+    abstract val composeLevel: Property<EngineLevel>
+
     @get:Internal
     abstract val projectDir: DirectoryProperty
 
@@ -47,9 +53,14 @@ abstract class ComposeDoctorTask : DefaultTask() {
 
     @TaskAction
     fun run() {
-        val findings = sarifReports.files
+        val allFindings = sarifReports.files
             .filter { it.exists() }
             .flatMap { SarifReader.read(it) }
+        val findings = EngineFilter.keep(
+            allFindings,
+            detekt = detektLevel.getOrElse(EngineLevel.ERRORS_AND_WARNINGS),
+            compose = composeLevel.getOrElse(EngineLevel.ERRORS_AND_WARNINGS),
+        )
 
         val score = Scorer.score(findings)
         val gate = failBelow.orNull

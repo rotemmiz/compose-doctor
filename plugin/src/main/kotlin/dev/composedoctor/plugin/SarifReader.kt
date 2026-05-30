@@ -61,6 +61,7 @@ object SarifReader {
             line = line,
             message = message,
             engine = engine,
+            ruleSet = ruleSet,
         )
     }
 }

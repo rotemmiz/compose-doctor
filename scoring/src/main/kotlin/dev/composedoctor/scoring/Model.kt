@@ -24,6 +24,8 @@ data class Finding(
     val line: Int,
     val message: String,
     val engine: String,
+    /** The originating rule set, e.g. "Compose" or "potential-bugs"; used to classify the engine. */
+    val ruleSet: String? = null,
 )
 
 enum class ScoreLabel(val min: Int) {

@@ -1,0 +1,24 @@
+# compose-doctor error tier for the Compose rules. Applied unless compose level = as-is.
+Compose:
+  RememberMissing:
+    severity: error
+  RememberContentMissing:
+    severity: error
+  MutableStateParam:
+    severity: error
+  MutableStateAutoboxing:
+    severity: error
+  LambdaParameterInRestartableEffect:
+    severity: error
+  ContentEmitterReturningValues:
+    severity: error
+  MultipleEmitters:
+    severity: error
+  ContentSlotReused:
+    severity: error
+  ViewModelForwarding:
+    severity: error
+  ViewModelInjection:
+    severity: error
+  CompositionLocalAllowlist:
+    severity: error

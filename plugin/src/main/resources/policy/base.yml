@@ -1,0 +1,47 @@
+# compose-doctor scope policy (no severities — those are applied as separate overlays per engine
+# level). Layered on detekt's defaults; the project's own detekt config wins over this.
+config:
+  validation: false
+
+# Disabled: opinionated style/formatting/naming that would dominate a Compose score.
+style:
+  active: false
+naming:
+  active: false
+comments:
+  active: false
+
+Compose:
+  active: true
+  Material2:
+    active: false
+  UnstableCollections:
+    active: true
+  RememberMissing: { active: true }
+  RememberContentMissing: { active: true }
+  MutableStateParam: { active: true }
+  MutableStateAutoboxing: { active: true }
+  LambdaParameterInRestartableEffect: { active: true }
+  ContentEmitterReturningValues: { active: true }
+  MultipleEmitters: { active: true }
+  ContentSlotReused: { active: true }
+  ViewModelForwarding: { active: true }
+  ViewModelInjection: { active: true }
+  CompositionLocalAllowlist: { active: true }
+  ComposableNaming: { active: true }
+  ComposableParamOrder: { active: true }
+  ComposableAnnotationNaming: { active: true }
+  ModifierMissing: { active: true }
+  ModifierWithoutDefault: { active: true }
+  ModifierNaming: { active: true }
+  ModifierReused: { active: true }
+  ModifierNotUsedAtRoot: { active: true }
+  ModifierClickableOrder: { active: true }
+  ModifierComposed: { active: true }
+  ContentTrailingLambda: { active: true }
+  LambdaParameterEventTrailing: { active: true }
+  DefaultsVisibility: { active: true }
+  ParameterNaming: { active: true }
+  PreviewPublic: { active: true }
+  PreviewAnnotationNaming: { active: true }
+  CompositionLocalNaming: { active: true }
