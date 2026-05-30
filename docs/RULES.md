@@ -55,8 +55,10 @@ compose-doctor is a thin wrapper over the engines: they own *which rules exist* 
 configs); the `composeDoctor { }` DSL owns *how strict the score is* per engine.
 
 ```kotlin
+import dev.composedoctor.plugin.EngineLevel   // at the top of build.gradle.kts
+
 composeDoctor {
-    detekt  = EngineLevel.ERRORS_AND_WARNINGS   // off | AS_IS | ERRORS | ERRORS_AND_WARNINGS
+    detekt  = EngineLevel.ERRORS_AND_WARNINGS   // OFF | AS_IS | ERRORS | ERRORS_AND_WARNINGS
     compose = EngineLevel.ERRORS_AND_WARNINGS
 }
 ```

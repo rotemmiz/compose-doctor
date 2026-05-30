@@ -65,7 +65,19 @@ compose-doctor — health score: 72/100  [NEEDS_WORK]
 ```
 
 Outputs:
-- `build/reports/compose-doctor/score.json` — machine-readable score + findings (for agents/CI).
+- `build/reports/compose-doctor/score.json` — machine-readable score + findings (for agents/CI):
+
+  ```json
+  {
+    "schemaVersion": 1, "status": "ok", "score": 72, "label": "NEEDS_WORK",
+    "uniqueErrorRules": 9, "uniqueWarningRules": 19, "totalFindings": 34,
+    "dimensions": { "ARCHITECTURE": 82, "PERFORMANCE": 96, "STATE_CORRECTNESS": 94 },
+    "byRule": [
+      { "ruleId": "CompositionLocalAllowlist", "severity": "ERROR", "count": 1,
+        "scoreImpactIfCleared": 1.5, "fixHint": "Avoid this CompositionLocal or add it to the allowlist." }
+    ]
+  }
+  ```
 - `build/reports/detekt/detekt.sarif` — findings in SARIF, with precise locations.
 
 ## Use it in your project
@@ -82,7 +94,10 @@ plugins {
 
 composeDoctor {
     failBelow.set(75)          // fail the build below this score (optional)
-    // autoConfigureDetekt.set(false)   // if you already configure detekt yourself
+    // per-engine strictness — see docs/RULES.md (needs: import dev.composedoctor.plugin.EngineLevel)
+    // detekt  = EngineLevel.ERRORS              // count only detekt's genuine bugs
+    // compose = EngineLevel.ERRORS_AND_WARNINGS // count all Compose issues (default)
+    // autoConfigureDetekt.set(false)            // if you already configure detekt yourself
 }
 ```
 

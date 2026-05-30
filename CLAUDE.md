@@ -1,6 +1,6 @@
 # compose-doctor
 
-A deterministic health-check tool for Android Jetpack Compose codebases — the "React Doctor" equivalent for Compose. Ships as a **Gradle plugin** that produces a **0–100 health score**, emits **SARIF** for an agent fix-loop, and powers a **CI/PR gate**, wrapped around `compose-rules` (mrmans0n) + detekt + android-lint.
+A deterministic health-check tool for Android Jetpack Compose codebases — the "React Doctor" equivalent for Compose. Ships as a **Gradle plugin** that produces a **0–100 health score**, emits **SARIF** for an agent fix-loop, and powers a **CI/PR gate**, wrapped around `compose-rules` (mrmans0n) + detekt (android-lint planned).
 
 > Full design lives in [`docs/PLAN.md`](docs/PLAN.md). Read it before making architectural changes.
 
@@ -13,8 +13,8 @@ All three plan phases are implemented and CI is green:
 - **Phase 2** — agent skill at `skill/compose-doctor/SKILL.md` (run → read SARIF → fix loop).
 - **Phase 3** — `.github/workflows/compose-doctor.yml` is a reusable gate (uploads SARIF for
   code-scanning, posts a sticky PR score comment, fails below a threshold); `ci.yml` builds +
-  tests + smoke-runs the playground; `pr-gate.yml` dogfoods the gate. Verified green end-to-end
-  (PR posted "95/100 GREAT" and passed the gate).
+  tests + smoke-runs the playground; `pr-gate.yml` dogfoods the gate (report-only). Verified green
+  end-to-end (the sticky comment posts the current playground score).
 
 Publishing infra is wired but nothing is published: the plugin module applies
 `com.gradle.plugin-publish` with full metadata, `publishToMavenLocal` works, and
@@ -24,13 +24,13 @@ To actually release: bump the version off `-SNAPSHOT` and add `GRADLE_PUBLISH_KE
 Remaining follow-ups (non-blocking): android-lint wiring (a11y/security dimensions; needs the
 Android SDK) and a `composeDoctorBaseline` task to seed detekt's `baseline.xml`.
 
-## Architecture (planned)
+## Architecture
 
-Gradle plugin only — no standalone CLI. The plugin orchestrates existing engines as cacheable Gradle tasks and aggregates their **SARIF** output (it does not embed detekt-core).
+Gradle plugin only — no standalone CLI. The plugin orchestrates detekt as a cacheable Gradle task and aggregates its **SARIF** output (it does not embed detekt-core).
 
-- `plugin/` — registers `composeDoctor` (+ `composeDoctorBaseline`); wires detekt+`compose-rules` (type resolution) and AGP `lint`; owns aggregation/scoring/reporting.
+- `plugin/` — registers the `composeDoctor` task; applies detekt + `compose-rules`, layers the bundled policy (`src/main/resources/policy/*.yml`), filters findings per the engine levels, scores, and reports. (`composeDoctorBaseline` and AGP `lint` are planned, not built.)
 - `scoring/` — pure, deterministic scoring function. Must be reproducible; cover with tests.
-- `rule-map/` — maintained ruleId → dimension + default-severity taxonomy (data, not logic).
+- `rule-map/` — `ruleId → dimension` (+ docsUrl / fixHint) taxonomy, with a rule-set fallback. Data, not logic.
 - `skill/` — agent skill (`SKILL.md`): run task → read SARIF → fix one rule → re-run.
 - `.github/` — reusable GitHub Action running `./gradlew composeDoctor`.
 
@@ -46,9 +46,9 @@ Counts **unique rules triggered, not instances; no size normalization** (transla
 
 - **Determinism is a hard requirement** for `scoring/` — same input must always yield the same score.
 - Don't reimplement rules; wrap compose-rules/detekt/android-lint, extend natively only for genuine gaps.
-- Reuse detekt's `baseline.xml` / `detekt.yml` / `@Suppress` for debt and config — don't build a parallel system.
+- Reuse detekt's `baseline.xml` / `detekt.yml` (`config/detekt/detekt.yml`) / `@Suppress` for debt and config — don't build a parallel system. compose-doctor's only own config is the per-engine strictness dial (`composeDoctor { detekt/compose = EngineLevel.* }`).
 - Dimensions are **display buckets**, not score weights.
-- Tech: Kotlin, Gradle plugin, detekt + `io.nlopez.compose.rules`, AGP lint, SARIF, kotlinx.serialization.
+- Tech: Kotlin, Gradle plugin, detekt + `io.nlopez.compose.rules`, SARIF, kotlinx.serialization. (AGP lint planned.)
 
 ## Contributing workflow
 
@@ -60,10 +60,11 @@ branch. Commits and PRs carry no Claude co-authorship.
 
 - `scoring/` — pure `Scorer` + model. `rule-map/` — `ruleId → Dimension` taxonomy.
 - `plugin/` — `dev.composedoctor` plugin: applies detekt + the `io.nlopez.compose.rules`
-  ruleset (config bundled at `plugin/src/main/resources/compose-doctor-detekt.yml`), reads the
-  detekt SARIF (`SarifReader`), scores it, reports, writes trend history, and gates via `failBelow`.
-- `playground/` — standalone composite build (`includeBuild("..")`) of deliberately-broken
-  composables, used to verify detection against the plugin sources.
+  ruleset (policy bundled at `plugin/src/main/resources/policy/*.yml`: `base` scope + per-engine
+  `*-severities` overlays), reads the detekt SARIF (`SarifReader`), filters by engine level
+  (`EngineFilter`), scores it, reports (`score.json` + console), writes trend history, gates via `failBelow`.
+- `playground/` — standalone composite build (`includeBuild("..")`) — a deliberately-flawed feed
+  app used to verify detection against the plugin sources (scores ~72/100 NEEDS_WORK).
 
 ## Common commands
 

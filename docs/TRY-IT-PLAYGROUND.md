@@ -41,9 +41,23 @@ compose-doctor — health score: 72/100  [NEEDS_WORK]
 ## 2. Read the machine report
 
 ```bash
-jq '.byRule[] | {ruleId, count, scoreImpactIfCleared, fixHint}' \
-  playground/build/reports/compose-doctor/score.json     # the remediation plan
-cat playground/build/reports/detekt/detekt.sarif         # SARIF with exact locations
+jq '.byRule[0]' playground/build/reports/compose-doctor/score.json     # top of the fix plan
+cat playground/build/reports/detekt/detekt.sarif                        # SARIF, exact locations
+```
+
+The first `byRule` entry (highest score-per-fix first):
+
+```json
+{
+  "ruleId": "CompositionLocalAllowlist",
+  "severity": "ERROR",
+  "dimension": "ARCHITECTURE",
+  "count": 1,
+  "scoreImpactIfCleared": 1.5,
+  "autoFixable": false,
+  "docsUrl": null,
+  "fixHint": "Avoid this CompositionLocal or add it to the allowlist."
+}
 ```
 
 See [AGENT-HARNESS.md](AGENT-HARNESS.md) for the full schema.
@@ -56,18 +70,20 @@ WildcardImport, naming, …) are disabled, so what remains is Compose health + r
 
 | File | Representative issues (🔴 = error tier) |
 |---|---|
-| `ui/FeedScreen.kt` | ComposableNaming, ModifierMissing, 🔴ViewModelInjection, UnstableCollections, MutableParams, LongParameterList, 🔴LambdaParameterInRestartableEffect |
+| `ui/FeedScreen.kt` | ComposableNaming, ModifierMissing, 🔴ViewModelInjection, UnstableCollections, MutableParams, LongParameterList, LambdaParameterEventTrailing, 🔴LambdaParameterInRestartableEffect |
 | `ui/components/Cards.kt` | ModifierNaming, ModifierWithoutDefault, ComposableParamOrder, ModifierReused, ModifierNotUsedAtRoot, 🔴MultipleEmitters, 🔴ContentEmitterReturningValues |
 | `ui/state/Editors.kt` | 🔴MutableStateParam, 🔴RememberMissing, 🔴MutableStateAutoboxing |
 | `ui/theme/Locals.kt` | CompositionLocalNaming, 🔴CompositionLocalAllowlist |
-| `ui/Previews.kt` · `ui/Material2Screen.kt` | PreviewPublic · Material2 (off by default — enabled here) |
+| `ui/Previews.kt` | PreviewPublic |
 | `data/FeedRepository.kt` | 🔴SwallowedException, TooGenericExceptionCaught/Thrown, ThrowingExceptionsWithoutMessageOrCause, ComplexCondition, NestedBlockDepth, EmptyFunctionBlock |
 
 Each composable is annotated with the rule it is meant to trip (search for `// ISSUE`).
 
-> Note: a few rules (e.g. `ViewModelForwarding`, `ModifierComposable`, `ModifierClickableOrder`)
-> need **type resolution** and are skipped here because the playground is analysed PSI-only.
-> Running the plugin in a real module that compiles surfaces those too.
+> Two things are intentionally *not* flagged: `ui/Material2Screen.kt` uses Material 2, but the
+> `Material2` rule is **off by default** (using M2 is a migration choice, not a defect — see
+> [RULES.md](RULES.md)); and rules that need **type resolution** (`ViewModelForwarding`,
+> `ModifierComposed`, `ModifierClickableOrder`) are skipped because the playground is analysed
+> PSI-only. A real module that compiles surfaces those too.
 
 ## 4. Watch the score move (the fix loop)
 
