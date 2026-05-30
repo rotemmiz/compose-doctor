@@ -82,7 +82,9 @@ object ScoreModel {
                 RuleSummaryJson(
                     ruleId = ruleId,
                     severity = severity.name,
-                    dimension = info.dimension.name,
+                    // Use the resolved dimension from the findings (ruleSet-aware), not the
+                    // rule-id-only fallback in infoFor.
+                    dimension = fs.first().dimension.name,
                     count = fs.size,
                     scoreImpactIfCleared = scoreImpact(severity),
                     autoFixable = info.autoFixable,

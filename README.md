@@ -35,6 +35,10 @@ Labels: **75+ Great · 50–74 Needs work · <50 Critical**.
 Findings are grouped into display **dimensions** (State/Correctness, Performance, Architecture,
 Security, Accessibility) for the report — dimensions do not weight the overall score.
 
+compose-doctor applies a curated policy on top of detekt + compose-rules — Compose health plus
+genuine bugs, with a two-tier severity (errors −1.5, warnings −0.75) and style noise disabled. See
+[docs/RULES.md](docs/RULES.md).
+
 ## Try it
 
 The repo ships a deliberately-flawed [`playground/`](playground) feed app, wired to the plugin from
@@ -49,14 +53,14 @@ git clone https://github.com/rotemmiz/compose-doctor && cd compose-doctor
 > the report, fix a rule, and watch the score move.
 
 ```
-compose-doctor — health score: 74/100  [NEEDS_WORK]
-  unique error rules:   0
-  unique warning rules: 35
-  total findings:       52
+compose-doctor — health score: 72/100  [NEEDS_WORK]
+  unique error rules:   9
+  unique warning rules: 19
+  total findings:       34
 
   by dimension:
-    ARCHITECTURE       79/100
-    STATE_CORRECTNESS  97/100
+    ARCHITECTURE       82/100
+    STATE_CORRECTNESS  94/100
     ...
 ```
 
