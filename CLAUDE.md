@@ -6,7 +6,9 @@ A deterministic health-check tool for Android Jetpack Compose codebases — the 
 
 ## Status
 
-Greenfield. Phase 1 (`composeDoctor` task + score) not yet scaffolded.
+Phase 1 implemented: the plugin applies detekt + compose-rules, emits SARIF, and scores it.
+Verified against `playground/` (a deliberately-broken Compose module) — see below.
+Not yet wired: android-lint (a11y/security dimensions), the agent skill, the CI Action.
 
 ## Architecture (planned)
 
@@ -34,10 +36,22 @@ Counts **unique rules triggered, not instances; no size normalization** (transla
 - Dimensions are **display buckets**, not score weights.
 - Tech: Kotlin, Gradle plugin, detekt + `io.nlopez.compose.rules`, AGP lint, SARIF, kotlinx.serialization.
 
-## Common commands (once scaffolded)
+## Modules
+
+- `scoring/` — pure `Scorer` + model. `rule-map/` — `ruleId → Dimension` taxonomy.
+- `plugin/` — `dev.composedoctor` plugin: applies detekt + the `io.nlopez.compose.rules`
+  ruleset (config bundled at `plugin/src/main/resources/compose-doctor-detekt.yml`), reads the
+  detekt SARIF (`SarifReader`), scores it, reports, writes trend history, and gates via `failBelow`.
+- `playground/` — standalone composite build (`includeBuild("..")`) of deliberately-broken
+  composables, used to verify detection against the plugin sources.
+
+## Common commands
 
 ```bash
-./gradlew composeDoctor           # run the health check + score
-./gradlew composeDoctorBaseline   # accept current findings as baseline
-./gradlew test                    # tests (incl. scoring determinism)
+./gradlew build                          # compile + all hermetic tests
+./gradlew test                           # tests only (incl. scoring determinism)
+./gradlew -p playground composeDoctor    # run the real scan against the broken playground
 ```
+
+The hermetic plugin tests set `autoConfigureDetekt.set(false)`; the playground exercises the
+full detekt + compose-rules path (needs network to resolve the ruleset).

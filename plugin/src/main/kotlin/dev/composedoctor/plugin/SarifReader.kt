@@ -34,7 +34,10 @@ object SarifReader {
     }
 
     private fun parseResult(result: kotlinx.serialization.json.JsonObject, engine: String): Finding? {
-        val ruleId = result["ruleId"]?.jsonPrimitive?.contentOrNull ?: return null
+        // SARIF rule IDs are namespaced, e.g. "detekt.Compose.RememberMissing" — the RuleMap and
+        // the report key on the bare rule name.
+        val ruleId = result["ruleId"]?.jsonPrimitive?.contentOrNull?.substringAfterLast('.')
+            ?: return null
         val severity = when (result["level"]?.jsonPrimitive?.contentOrNull) {
             "error" -> Severity.ERROR
             "warning" -> Severity.WARNING

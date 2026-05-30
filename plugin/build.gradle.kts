@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":scoring"))
     implementation(project(":rule-map"))
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.detekt.gradle.plugin)
     testImplementation(libs.junit.jupiter)
     testImplementation(gradleTestKit())
 }

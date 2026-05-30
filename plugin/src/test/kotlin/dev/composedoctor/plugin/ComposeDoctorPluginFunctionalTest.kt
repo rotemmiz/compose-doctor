@@ -41,6 +41,7 @@ class ComposeDoctorPluginFunctionalTest {
             """
             plugins { id("dev.composedoctor") }
             composeDoctor {
+                autoConfigureDetekt.set(false)
                 sarifReports.from("findings.sarif")
                 ${failBelow?.let { "failBelow.set($it)" } ?: ""}
             }

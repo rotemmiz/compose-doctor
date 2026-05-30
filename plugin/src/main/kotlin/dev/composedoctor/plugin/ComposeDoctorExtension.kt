@@ -6,7 +6,14 @@ import org.gradle.api.provider.Property
 
 /** DSL configuration for the `composeDoctor { }` block. */
 abstract class ComposeDoctorExtension {
-    /** SARIF reports emitted by detekt / android-lint that should be aggregated into the score. */
+    /**
+     * When true (default), the plugin applies detekt, attaches the compose-rules ruleset, enables
+     * its SARIF report, and feeds it into the score automatically. Set false if you already
+     * configure detekt yourself and only want compose-doctor to aggregate via [sarifReports].
+     */
+    abstract val autoConfigureDetekt: Property<Boolean>
+
+    /** Additional SARIF reports (e.g. android-lint) to aggregate alongside the auto-wired ones. */
     abstract val sarifReports: ConfigurableFileCollection
 
     /** Fail the build if the overall score is below this value. Unset = no gate. */
