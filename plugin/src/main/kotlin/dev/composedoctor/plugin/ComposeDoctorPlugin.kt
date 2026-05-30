@@ -23,6 +23,9 @@ class ComposeDoctorPlugin : Plugin<Project> {
         ext.reportJson.convention(
             target.layout.buildDirectory.file("reports/compose-doctor/score.json"),
         )
+        ext.stateFile.convention(
+            target.layout.projectDirectory.file(".compose-doctor/last-run.json"),
+        )
         ext.historyFile.convention(
             target.layout.projectDirectory.file(".compose-doctor/history.jsonl"),
         )
@@ -33,7 +36,10 @@ class ComposeDoctorPlugin : Plugin<Project> {
             t.sarifReports.from(ext.sarifReports)
             t.failBelow.set(ext.failBelow)
             t.reportJson.set(ext.reportJson)
+            t.stateFile.set(ext.stateFile)
             t.historyFile.set(ext.historyFile)
+            t.rulesetVersion.set("compose-rules $COMPOSE_RULES_VERSION · detekt $DETEKT_VERSION")
+            t.projectDir.set(target.layout.projectDirectory)
         }
 
         target.afterEvaluate {
@@ -75,5 +81,6 @@ class ComposeDoctorPlugin : Plugin<Project> {
 
     companion object {
         const val COMPOSE_RULES_VERSION = "0.4.22"
+        const val DETEKT_VERSION = "1.23.7"
     }
 }
