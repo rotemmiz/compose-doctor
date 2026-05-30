@@ -61,7 +61,10 @@ class ComposeDoctorPlugin : Plugin<Project> {
 
         target.extensions.configure(DetektExtension::class.java) { d ->
             d.buildUponDefaultConfig = true
+            // Order matters: detekt merges later files over earlier ones, so the user's overrides
+            // (compose-doctor.yml) win over the bundled policy.
             d.config.setFrom(DetektConfig.materialize(target))
+            userConfig(target)?.let { d.config.from(it) }
         }
 
         val detektTasks = target.tasks.withType(Detekt::class.java)
@@ -77,6 +80,14 @@ class ComposeDoctorPlugin : Plugin<Project> {
                 target.layout.buildDirectory.file("reports/detekt/detekt.sarif"),
             )
         }
+    }
+
+    /** The user's override config: the explicit [ComposeDoctorExtension.configFile], else a
+     *  `compose-doctor.yml` at the project root if present. */
+    private fun userConfig(target: Project): java.io.File? {
+        val ext = target.extensions.getByType(ComposeDoctorExtension::class.java)
+        ext.configFile.orNull?.asFile?.let { return it }
+        return target.layout.projectDirectory.file("compose-doctor.yml").asFile.takeIf { it.exists() }
     }
 
     companion object {

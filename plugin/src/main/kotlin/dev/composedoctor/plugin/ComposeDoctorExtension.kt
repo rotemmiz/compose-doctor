@@ -13,6 +13,14 @@ abstract class ComposeDoctorExtension {
      */
     abstract val autoConfigureDetekt: Property<Boolean>
 
+    /**
+     * Optional detekt-format config layered on top of compose-doctor's bundled policy (your
+     * settings win). Use it to disable a rule (`active: false`), change a severity
+     * (`severity: warning`), or exclude paths. If unset, a `compose-doctor.yml` at the project root
+     * is picked up automatically. See docs/RULES.md.
+     */
+    abstract val configFile: RegularFileProperty
+
     /** Additional SARIF reports (e.g. android-lint) to aggregate alongside the auto-wired ones. */
     abstract val sarifReports: ConfigurableFileCollection
 
