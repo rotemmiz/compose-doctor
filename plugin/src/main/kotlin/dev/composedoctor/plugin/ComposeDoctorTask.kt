@@ -27,6 +27,10 @@ abstract class ComposeDoctorTask : DefaultTask() {
 
     @get:OutputFile
     @get:Optional
+    abstract val reportJson: RegularFileProperty
+
+    @get:OutputFile
+    @get:Optional
     abstract val historyFile: RegularFileProperty
 
     @TaskAction
@@ -38,6 +42,10 @@ abstract class ComposeDoctorTask : DefaultTask() {
         val score = Scorer.score(findings)
         logger.lifecycle(ScoreReport.render(score, findings))
 
+        reportJson.orNull?.asFile?.let { f ->
+            f.parentFile?.mkdirs()
+            f.writeText(ScoreJsonWriter.toJson(score, findings))
+        }
         historyFile.orNull?.asFile?.let { HistoryStore.append(it, score) }
 
         val gate = failBelow.orNull

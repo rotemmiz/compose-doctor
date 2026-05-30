@@ -19,6 +19,9 @@ abstract class ComposeDoctorExtension {
     /** Fail the build if the overall score is below this value. Unset = no gate. */
     abstract val failBelow: Property<Int>
 
+    /** Machine-readable score + findings report, consumed by CI. */
+    abstract val reportJson: RegularFileProperty
+
     /** File to append per-run history to, for local trend tracking. */
     abstract val historyFile: RegularFileProperty
 }

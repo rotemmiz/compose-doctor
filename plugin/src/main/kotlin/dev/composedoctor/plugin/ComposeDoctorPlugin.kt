@@ -20,6 +20,9 @@ class ComposeDoctorPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         val ext = target.extensions.create("composeDoctor", ComposeDoctorExtension::class.java)
         ext.autoConfigureDetekt.convention(true)
+        ext.reportJson.convention(
+            target.layout.buildDirectory.file("reports/compose-doctor/score.json"),
+        )
         ext.historyFile.convention(
             target.layout.projectDirectory.file(".compose-doctor/history.jsonl"),
         )
@@ -29,6 +32,7 @@ class ComposeDoctorPlugin : Plugin<Project> {
             t.description = "Aggregates SARIF reports into a Compose health score."
             t.sarifReports.from(ext.sarifReports)
             t.failBelow.set(ext.failBelow)
+            t.reportJson.set(ext.reportJson)
             t.historyFile.set(ext.historyFile)
         }
 

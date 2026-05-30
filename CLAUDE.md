@@ -6,9 +6,13 @@ A deterministic health-check tool for Android Jetpack Compose codebases — the 
 
 ## Status
 
-Phase 1 implemented: the plugin applies detekt + compose-rules, emits SARIF, and scores it.
-Verified against `playground/` (a deliberately-broken Compose module) — see below.
-Not yet wired: android-lint (a11y/security dimensions), the agent skill, the CI Action.
+Phase 1 implemented: the plugin applies detekt + compose-rules, emits SARIF, scores it, and
+writes a machine-readable `score.json`. Verified against `playground/` (a deliberately-broken
+Compose module) — see below.
+Phase 3 (CI) implemented: `.github/workflows/compose-doctor.yml` is a reusable gate (uploads
+SARIF for code-scanning annotations, posts a sticky PR score comment, fails below a threshold);
+`.github/workflows/ci.yml` builds, tests, and smoke-runs the playground scan.
+Not yet wired: android-lint (a11y/security dimensions) and the agent skill (Phase 2).
 
 ## Architecture (planned)
 

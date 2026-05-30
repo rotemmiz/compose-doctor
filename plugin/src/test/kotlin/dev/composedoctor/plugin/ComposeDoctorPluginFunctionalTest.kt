@@ -67,6 +67,10 @@ class ComposeDoctorPluginFunctionalTest {
         )
         assertTrue(result.output.contains("[GREAT]"))
         assertTrue(File(projectDir, ".compose-doctor/history.jsonl").exists())
+
+        val reportJson = File(projectDir, "build/reports/compose-doctor/score.json")
+        assertTrue(reportJson.exists(), "expected score.json to be written")
+        assertTrue(reportJson.readText().contains("\"score\": 98"))
     }
 
     @Test

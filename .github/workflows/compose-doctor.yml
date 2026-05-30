@@ -1,0 +1,102 @@
+# Reusable compose-doctor gate. Call it from your repo:
+#
+#   jobs:
+#     health:
+#       uses: rotemmiz/compose-doctor/.github/workflows/compose-doctor.yml@main
+#       with:
+#         fail-below: 75
+name: compose-doctor
+
+on:
+  workflow_call:
+    inputs:
+      gradle-args:
+        description: Gradle invocation that runs the composeDoctor task.
+        type: string
+        default: composeDoctor
+      report-json:
+        description: Path to the score JSON the task writes.
+        type: string
+        default: build/reports/compose-doctor/score.json
+      sarif:
+        description: Path to the detekt SARIF report to upload for code scanning.
+        type: string
+        default: build/reports/detekt/detekt.sarif
+      fail-below:
+        description: Fail the job if the score is below this value (0 = never).
+        type: number
+        default: 0
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+  compose-doctor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Run compose-doctor
+        run: ./gradlew ${{ inputs.gradle-args }}
+
+      - name: Upload SARIF to code scanning
+        if: always() && hashFiles(inputs.sarif) != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ inputs.sarif }}
+
+      - name: Post score comment
+        if: always() && github.event_name == 'pull_request' && hashFiles(inputs.report-json) != ''
+        uses: actions/github-script@v7
+        env:
+          REPORT_JSON: ${{ inputs.report-json }}
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- compose-doctor -->';
+            const r = JSON.parse(fs.readFileSync(process.env.REPORT_JSON, 'utf8'));
+            const dims = Object.entries(r.dimensions)
+              .map(([k, v]) => `| ${k} | ${v}/100 |`).join('\n');
+            const body = [
+              marker,
+              `## 🩺 compose-doctor — ${r.score}/100 (${r.label})`,
+              '',
+              `Unique error rules: **${r.uniqueErrorRules}** · `
+                + `warning rules: **${r.uniqueWarningRules}** · `
+                + `total findings: **${r.totalFindings}**`,
+              '',
+              '| Dimension | Score |',
+              '|---|---|',
+              dims,
+            ].join('\n');
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const { data: comments } =
+              await github.rest.issues.listComments({ owner, repo, issue_number });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment(
+                { owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+      - name: Enforce score gate
+        if: always() && inputs.fail-below > 0 && hashFiles(inputs.report-json) != ''
+        run: |
+          score=$(jq -r '.score' "${{ inputs.report-json }}")
+          echo "compose-doctor score: $score (gate: ${{ inputs.fail-below }})"
+          if [ "$score" -lt "${{ inputs.fail-below }}" ]; then
+            echo "::error::compose-doctor score $score is below ${{ inputs.fail-below }}"
+            exit 1
+          fi
