@@ -16,6 +16,11 @@ All three plan phases are implemented and CI is green:
   tests + smoke-runs the playground; `pr-gate.yml` dogfoods the gate. Verified green end-to-end
   (PR posted "95/100 GREAT" and passed the gate).
 
+Publishing infra is wired but nothing is published: the plugin module applies
+`com.gradle.plugin-publish` with full metadata, `publishToMavenLocal` works, and
+`.github/workflows/release.yml` is a manual-only release (defaults to a credential-free dry run).
+To actually release: bump the version off `-SNAPSHOT` and add `GRADLE_PUBLISH_KEY`/`SECRET` secrets.
+
 Remaining follow-ups (non-blocking): android-lint wiring (a11y/security dimensions; needs the
 Android SDK) and a `composeDoctorBaseline` task to seed detekt's `baseline.xml`.
 
