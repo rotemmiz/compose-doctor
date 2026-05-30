@@ -1,0 +1,127 @@
+# compose-doctor
+
+[![ci](https://github.com/rotemmiz/compose-doctor/actions/workflows/ci.yml/badge.svg)](https://github.com/rotemmiz/compose-doctor/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+**A deterministic health check for Android Jetpack Compose — the [React Doctor](https://www.react.doctor/) idea, for Compose.**
+
+Your agent writes Compose; this scores it. compose-doctor runs [detekt](https://detekt.dev/) +
+[compose-rules](https://mrmans0n.github.io/compose-rules/) under the hood, then turns the findings
+into a single **0–100 health score**, a structured report an agent can fix against, and a CI/PR gate.
+
+> ⚠️ **Pre-release.** The scoring, the Gradle plugin, the agent skill, and the CI workflows all
+> work and are covered by tests, but the plugin is **not yet published** to the Gradle Plugin
+> Portal. For now you consume it from source (see [Try it](#try-it)).
+
+## Why
+
+The pieces exist in the Compose world but are unbundled — `compose-rules`/`compose-lints` for the
+rules, scattered agent guides, and no shared score. compose-doctor's value isn't the rules (those
+are battle-tested upstream); it's the **bundle**: one score, an agent fix-loop, and a CI gate.
+
+## The score
+
+```
+score = 100 − (uniqueErrorRules × 1.5) − (uniqueWarningRules × 0.75)      // clamped to [0, 100]
+```
+
+Translated directly from React Doctor: the unit is **unique rule IDs triggered**, not instance
+count and not normalized by code size. Fixing 49 of 50 violations of a rule does not move the
+score; clearing the **last** one removes that rule's penalty. That makes the score deterministic
+without calibration — and makes the agent loop ("clear one rule at a time") effective.
+
+Labels: **75+ Great · 50–74 Needs work · <50 Critical**.
+
+Findings are grouped into display **dimensions** (State/Correctness, Performance, Architecture,
+Security, Accessibility) for the report — dimensions do not weight the overall score.
+
+## Try it
+
+The repo ships a deliberately-broken [`playground/`](playground) module, wired to the plugin from
+source via a composite build. With JDK 21:
+
+```bash
+git clone https://github.com/rotemmiz/compose-doctor && cd compose-doctor
+./gradlew -p playground composeDoctor
+```
+
+```
+compose-doctor — health score: 95/100  [GREAT]
+  unique error rules:   0
+  unique warning rules: 7
+  total findings:       7
+
+  by dimension:
+    ARCHITECTURE       96/100
+    STATE_CORRECTNESS  99/100
+    ...
+```
+
+Outputs:
+- `build/reports/compose-doctor/score.json` — machine-readable score + findings (for agents/CI).
+- `build/reports/detekt/detekt.sarif` — findings in SARIF, with precise locations.
+
+## Use it in your project
+
+> Once published this will be `plugins { id("dev.composedoctor") version "<x.y.z>" }`. Until then,
+> add the build as a composite (`includeBuild`) — see `playground/settings.gradle.kts` for the
+> exact pattern.
+
+```kotlin
+// build.gradle.kts of a module with Compose source
+plugins {
+    id("dev.composedoctor")
+}
+
+composeDoctor {
+    failBelow.set(75)          // fail the build below this score (optional)
+    // autoConfigureDetekt.set(false)   // if you already configure detekt yourself
+}
+```
+
+Then `./gradlew composeDoctor`. The plugin applies detekt, attaches the compose-rules ruleset
+(config bundled), enables SARIF, and scores it. Existing detekt machinery — `baseline.xml`,
+`detekt.yml`, `@Suppress` — applies as usual.
+
+## CI
+
+A reusable workflow posts the score on every PR, uploads SARIF for code-scanning annotations, and
+gates on a threshold:
+
+```yaml
+# .github/workflows/health.yml
+jobs:
+  health:
+    uses: rotemmiz/compose-doctor/.github/workflows/compose-doctor.yml@main
+    with:
+      gradle-args: composeDoctor
+      fail-below: 75
+```
+
+It comments a sticky **🩺 compose-doctor — NN/100** summary on the PR.
+
+## Agent skill
+
+[`skill/compose-doctor/SKILL.md`](skill/compose-doctor/SKILL.md) teaches a coding agent (Claude
+Code, Cursor, Codex) to run the task, read the SARIF, and fix the highest-value rule iteratively —
+plus Compose best-practices to avoid the findings up front. Install:
+
+```bash
+cp -r skill/compose-doctor .claude/skills/compose-doctor
+```
+
+## How it works
+
+A Gradle plugin orchestrates existing engines and aggregates their SARIF — it does not embed
+detekt-core or reimplement rules. `scoring/` is a pure, deterministic function; `rule-map/` maps
+rule IDs to dimensions; `plugin/` does the wiring, scoring, and reporting.
+
+## Roadmap
+
+- Publish to the Gradle Plugin Portal.
+- Wire **android-lint** to populate the Security/Accessibility dimensions.
+- `composeDoctorBaseline` task to seed detekt's `baseline.xml`.
+
+## License
+
+[MIT](LICENSE) © 2026 Rotem Meidan
