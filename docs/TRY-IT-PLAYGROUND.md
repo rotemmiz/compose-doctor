@@ -1,12 +1,12 @@
 # Try compose-doctor on the playground
 
-A 5-minute, hands-on tour. The repo ships `playground/` — a deliberately-broken Compose module
-wired to the plugin from source — so you can see the score, the machine report, and the fix loop
-without setting up your own project.
+A hands-on tour. The repo ships `playground/` — a deliberately-flawed mini "feed app" wired to the
+plugin from source — so you can see the score, the machine report, and the fix loop without setting
+up your own project.
 
 ## Prerequisites
 
-- JDK 21 (`java -version` → 21). Nothing else; the Gradle wrapper handles the rest.
+- JDK 21 (`java -version` → 21). The Gradle wrapper handles the rest.
 - No Android SDK needed — the playground is *analysed* (detekt PSI), not compiled.
 
 ## 1. Run it
@@ -17,107 +17,106 @@ From the repo root:
 ./gradlew -p playground composeDoctor
 ```
 
-Expected console output:
+Expected:
 
 ```
-compose-doctor — health score: 95/100  [GREAT]
+compose-doctor — health score: 74/100  [NEEDS_WORK]
   unique error rules:   0
-  unique warning rules: 7
-  total findings:       7
+  unique warning rules: 35
+  total findings:       52
 
   by dimension:
     ACCESSIBILITY      100/100
-    ARCHITECTURE       96/100
-    PERFORMANCE        100/100
+    ARCHITECTURE       79/100
+    PERFORMANCE        98/100
     SECURITY           100/100
-    STATE_CORRECTNESS  99/100
-
-  next fixes (most score per fix first):
-    +0.75 ComposableNaming (×1) — Rename the UI-emitting composable to PascalCase.
-    ...
+    STATE_CORRECTNESS  97/100
 ```
 
-> Score = `100 − errorRules×1.5 − warningRules×0.75`. Here: 7 warning rules → `100 − 7×0.75 = 94.75
-> → 95`. Security/Accessibility are 100 because those come from android-lint, which isn't wired yet.
+> Score = `100 − errorRules×1.5 − warningRules×0.75` → `100 − 35×0.75 = 73.75 → 74`. Security and
+> Accessibility are 100 because those come from android-lint, which isn't wired in yet.
 
-## 2. Look at the machine report
-
-This is what an agent and CI read:
+## 2. Read the machine report
 
 ```bash
-cat playground/build/reports/compose-doctor/score.json   # score, byRule plan, findings, delta
+jq '.byRule[] | {ruleId, count, scoreImpactIfCleared, fixHint}' \
+  playground/build/reports/compose-doctor/score.json     # the remediation plan
 cat playground/build/reports/detekt/detekt.sarif         # SARIF with exact locations
 ```
 
-`byRule` is the remediation plan, ordered by score-per-fix; each row has a `fixHint` and `docsUrl`.
 See [AGENT-HARNESS.md](AGENT-HARNESS.md) for the full schema.
 
-## 3. The 7 deliberate issues
+## 3. What's wrong, and where
 
-All in [`playground/src/main/kotlin/dev/composedoctor/playground/BadComposables.kt`](../playground/src/main/kotlin/dev/composedoctor/playground/BadComposables.kt):
+~21 **Compose** rules + ~14 general **detekt** rules fire (52 findings). By file:
 
-| Function | Rule(s) | The fix |
-|---|---|---|
-| `myScreen()` | **ComposableNaming** + **ModifierMissing** | Rename to `MyScreen`; add `modifier: Modifier = Modifier` and pass it to the root. |
-| `Header(modifier: Modifier)` | **ModifierWithoutDefault** | `modifier: Modifier = Modifier`. |
-| `Profile(modifier = …, name)` | **ComposableParamOrder** | Put `name` first, then `modifier`. |
-| `Editor(state: MutableState<String>)` | **MutableStateParam** | Pass `value: String` + `onValueChange: (String) -> Unit`. |
-| `Toggle()` | **RememberMissing** | `var checked by remember { mutableStateOf(false) }`. |
-| `Container(viewModel) → Detail(viewModel)` | **ViewModelForwarding** | Pass the concrete state/callbacks Detail needs, not the ViewModel. |
+| File | Representative issues |
+|---|---|
+| `ui/FeedScreen.kt` | ComposableNaming, ModifierMissing, ViewModelInjection, UnstableCollections, MutableParams, LongParameterList, LambdaParameterInRestartableEffect |
+| `ui/components/Cards.kt` | ModifierNaming, ModifierWithoutDefault, ComposableParamOrder, ModifierReused, ModifierNotUsedAtRoot, MultipleEmitters, ContentEmitterReturningValues, MagicNumber |
+| `ui/state/Editors.kt` | MutableStateParam, RememberMissing, MutableStateAutoboxing |
+| `ui/theme/Locals.kt` | CompositionLocalNaming, CompositionLocalAllowlist |
+| `ui/Previews.kt` | PreviewPublic |
+| `ui/Material2Screen.kt` | Material2 |
+| `data/FeedRepository.kt` | ComplexCondition, NestedBlockDepth, ReturnCount, TooGenericExceptionCaught/Thrown, SwallowedException, EmptyFunctionBlock, ForbiddenComment, LoopWithTooManyJumpStatements, UnusedPrivateProperty |
 
-(`myScreen` trips two rules, so 6 functions → 7 findings.)
+Each composable is annotated with the rule it is meant to trip (search for `// ISSUE`).
+
+> Note: a few rules (e.g. `ViewModelForwarding`, `ModifierComposable`, `ModifierClickableOrder`)
+> need **type resolution** and are skipped here because the playground is analysed PSI-only.
+> Running the plugin in a real module that compiles surfaces those too.
 
 ## 4. Watch the score move (the fix loop)
 
-Fix one rule completely and re-run. For example, rename the lowercase composable:
+The score moves only when the **last** instance of a rule is gone. Pick a single-instance rule —
+e.g. fix `RememberMissing` in `ui/state/Editors.kt`:
+
+```kotlin
+// Toggle(): wrap the state in remember
+val checked = remember { mutableStateOf(false) }
+```
 
 ```bash
-# in BadComposables.kt, change `fun myScreen()` to `fun MyScreen()`
 ./gradlew -p playground composeDoctor
 ```
 
 Expected:
 
 ```
-compose-doctor — health score: 96/100  [GREAT]
-  unique warning rules: 6
+compose-doctor — health score: 75/100  [GREAT]
+  unique warning rules: 34
   Δ vs previous run:        +1  (cleared 1, new 0)
 ```
 
-and `score.json` now shows:
+and `score.json`:
 
 ```json
-"delta": { "vs": "previous run", "score": 1, "newRules": [], "fixedRules": ["ComposableNaming"] }
+"delta": { "vs": "previous run", "score": 1, "newRules": [], "fixedRules": ["RememberMissing"] }
 ```
 
-Key behaviour: the score only moves when the **last** instance of a rule is gone. Keep clearing
-rules one at a time and the score climbs toward 100. (`ModifierMissing` on the same function stays
-until you also add the `modifier` parameter.)
+Try a rule with multiple instances (e.g. `ComposableNaming`, which fires twice): fixing only one
+occurrence leaves the rule — and the score — unchanged until you clear them all.
 
 ## 5. Try the gate
 
-Make it fail a build below a threshold:
-
-```bash
-# playground/build.gradle.kts
-composeDoctor { failBelow.set(96) }
+```kotlin
+// playground/build.gradle.kts
+composeDoctor { failBelow.set(80) }
 ```
 
-`./gradlew -p playground composeDoctor` now exits non-zero, and `score.json` shows
-`"status": "below_gate"`. Raise the score above the threshold (or lower it) to pass.
+`./gradlew -p playground composeDoctor` now exits non-zero (74 < 80) and `score.json` shows
+`"status": "below_gate"`. Fix findings until the score clears the bar.
 
 ## 6. Try the agent loop
-
-Install the skill, then ask your agent to improve the score:
 
 ```bash
 cp -r skill/compose-doctor .claude/skills/compose-doctor
 ```
 
 Prompt: *"Run compose-doctor on the playground and raise the score by fixing the findings, one
-rule at a time. Don't suppress anything."* The agent should run the task, read `score.json`'s
-`byRule`, fix a rule, re-run, and watch the delta — exactly the loop in
-[AGENT-HARNESS.md](AGENT-HARNESS.md).
+rule at a time. Verify the build still compiles, and don't suppress anything."* The agent should
+read `score.json`'s `byRule`, clear the highest-value rule, re-run, and watch the delta — the loop
+in [AGENT-HARNESS.md](AGENT-HARNESS.md).
 
 ## 7. Reset
 

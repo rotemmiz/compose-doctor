@@ -37,7 +37,7 @@ Security, Accessibility) for the report — dimensions do not weight the overall
 
 ## Try it
 
-The repo ships a deliberately-broken [`playground/`](playground) module, wired to the plugin from
+The repo ships a deliberately-flawed [`playground/`](playground) feed app, wired to the plugin from
 source via a composite build. With JDK 21:
 
 ```bash
@@ -49,14 +49,14 @@ git clone https://github.com/rotemmiz/compose-doctor && cd compose-doctor
 > the report, fix a rule, and watch the score move.
 
 ```
-compose-doctor — health score: 95/100  [GREAT]
+compose-doctor — health score: 74/100  [NEEDS_WORK]
   unique error rules:   0
-  unique warning rules: 7
-  total findings:       7
+  unique warning rules: 35
+  total findings:       52
 
   by dimension:
-    ARCHITECTURE       96/100
-    STATE_CORRECTNESS  99/100
+    ARCHITECTURE       79/100
+    STATE_CORRECTNESS  97/100
     ...
 ```
 

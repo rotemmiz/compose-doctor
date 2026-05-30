@@ -16,4 +16,5 @@ jobs:
       gradle-args: "-p playground composeDoctor"
       report-json: playground/build/reports/compose-doctor/score.json
       sarif: playground/build/reports/detekt/detekt.sarif
-      fail-below: 75
+      # report-only: the playground is intentionally flawed, so it must not gate repo PRs.
+      fail-below: 0
