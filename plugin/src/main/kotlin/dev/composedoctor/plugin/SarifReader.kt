@@ -34,10 +34,12 @@ object SarifReader {
     }
 
     private fun parseResult(result: kotlinx.serialization.json.JsonObject, engine: String): Finding? {
-        // SARIF rule IDs are namespaced, e.g. "detekt.Compose.RememberMissing" — the RuleMap and
-        // the report key on the bare rule name.
-        val ruleId = result["ruleId"]?.jsonPrimitive?.contentOrNull?.substringAfterLast('.')
-            ?: return null
+        // SARIF rule IDs are namespaced, e.g. "detekt.potential-bugs.UnsafeCast". The RuleMap and
+        // the report key on the bare rule name; the rule set drives the dimension fallback.
+        val fullRuleId = result["ruleId"]?.jsonPrimitive?.contentOrNull ?: return null
+        val parts = fullRuleId.split('.')
+        val ruleId = parts.last()
+        val ruleSet = parts.getOrNull(parts.size - 2)
         val severity = when (result["level"]?.jsonPrimitive?.contentOrNull) {
             "error" -> Severity.ERROR
             "warning" -> Severity.WARNING
@@ -53,7 +55,7 @@ object SarifReader {
 
         return Finding(
             ruleId = ruleId,
-            dimension = RuleMap.dimensionFor(ruleId),
+            dimension = RuleMap.dimensionFor(ruleId, ruleSet),
             severity = severity,
             filePath = uri,
             line = line,

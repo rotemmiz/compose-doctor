@@ -20,21 +20,23 @@ From the repo root:
 Expected:
 
 ```
-compose-doctor — health score: 74/100  [NEEDS_WORK]
-  unique error rules:   0
-  unique warning rules: 35
-  total findings:       52
+compose-doctor — health score: 72/100  [NEEDS_WORK]
+  unique error rules:   9
+  unique warning rules: 19
+  total findings:       34
 
   by dimension:
     ACCESSIBILITY      100/100
-    ARCHITECTURE       79/100
-    PERFORMANCE        98/100
+    ARCHITECTURE       82/100
+    PERFORMANCE        96/100
     SECURITY           100/100
-    STATE_CORRECTNESS  97/100
+    STATE_CORRECTNESS  94/100
 ```
 
-> Score = `100 − errorRules×1.5 − warningRules×0.75` → `100 − 35×0.75 = 73.75 → 74`. Security and
-> Accessibility are 100 because those come from android-lint, which isn't wired in yet.
+> Score = `100 − errorRules×1.5 − warningRules×0.75` → `100 − 9×1.5 − 19×0.75 = 72.25 → 72`.
+> Genuine bugs (e.g. `RememberMissing`, `MutableStateParam`) count as **errors** (−1.5); design and
+> naming issues count as **warnings** (−0.75). Security/Accessibility are 100 because those come
+> from android-lint, which isn't wired in yet. See [RULES.md](RULES.md) for the policy.
 
 ## 2. Read the machine report
 
@@ -48,17 +50,18 @@ See [AGENT-HARNESS.md](AGENT-HARNESS.md) for the full schema.
 
 ## 3. What's wrong, and where
 
-~21 **Compose** rules + ~14 general **detekt** rules fire (52 findings). By file:
+~20 **Compose** rules + ~8 genuine-bug **detekt** rules fire (28 unique rules, 34 findings). Under
+compose-doctor's curated policy ([RULES.md](RULES.md)) the pure-style detekt rules (MagicNumber,
+WildcardImport, naming, …) are disabled, so what remains is Compose health + real bugs. By file:
 
-| File | Representative issues |
+| File | Representative issues (🔴 = error tier) |
 |---|---|
-| `ui/FeedScreen.kt` | ComposableNaming, ModifierMissing, ViewModelInjection, UnstableCollections, MutableParams, LongParameterList, LambdaParameterInRestartableEffect |
-| `ui/components/Cards.kt` | ModifierNaming, ModifierWithoutDefault, ComposableParamOrder, ModifierReused, ModifierNotUsedAtRoot, MultipleEmitters, ContentEmitterReturningValues, MagicNumber |
-| `ui/state/Editors.kt` | MutableStateParam, RememberMissing, MutableStateAutoboxing |
-| `ui/theme/Locals.kt` | CompositionLocalNaming, CompositionLocalAllowlist |
-| `ui/Previews.kt` | PreviewPublic |
-| `ui/Material2Screen.kt` | Material2 |
-| `data/FeedRepository.kt` | ComplexCondition, NestedBlockDepth, ReturnCount, TooGenericExceptionCaught/Thrown, SwallowedException, EmptyFunctionBlock, ForbiddenComment, LoopWithTooManyJumpStatements, UnusedPrivateProperty |
+| `ui/FeedScreen.kt` | ComposableNaming, ModifierMissing, 🔴ViewModelInjection, UnstableCollections, MutableParams, LongParameterList, 🔴LambdaParameterInRestartableEffect |
+| `ui/components/Cards.kt` | ModifierNaming, ModifierWithoutDefault, ComposableParamOrder, ModifierReused, ModifierNotUsedAtRoot, 🔴MultipleEmitters, 🔴ContentEmitterReturningValues |
+| `ui/state/Editors.kt` | 🔴MutableStateParam, 🔴RememberMissing, 🔴MutableStateAutoboxing |
+| `ui/theme/Locals.kt` | CompositionLocalNaming, 🔴CompositionLocalAllowlist |
+| `ui/Previews.kt` · `ui/Material2Screen.kt` | PreviewPublic · Material2 (off by default — enabled here) |
+| `data/FeedRepository.kt` | 🔴SwallowedException, TooGenericExceptionCaught/Thrown, ThrowingExceptionsWithoutMessageOrCause, ComplexCondition, NestedBlockDepth, EmptyFunctionBlock |
 
 Each composable is annotated with the rule it is meant to trip (search for `// ISSUE`).
 
@@ -83,15 +86,16 @@ val checked = remember { mutableStateOf(false) }
 Expected:
 
 ```
-compose-doctor — health score: 75/100  [GREAT]
-  unique warning rules: 34
-  Δ vs previous run:        +1  (cleared 1, new 0)
+compose-doctor — health score: 74/100  [NEEDS_WORK]
+  unique error rules:   8
+  Δ vs previous run:        +2  (cleared 1, new 0)
 ```
 
-and `score.json`:
+The score jumps **+2**, not +1, because `RememberMissing` is an *error* (−1.5). Fixing a warning-tier
+rule moves it +1 (rounded). `score.json`:
 
 ```json
-"delta": { "vs": "previous run", "score": 1, "newRules": [], "fixedRules": ["RememberMissing"] }
+"delta": { "vs": "previous run", "score": 2, "newRules": [], "fixedRules": ["RememberMissing"] }
 ```
 
 Try a rule with multiple instances (e.g. `ComposableNaming`, which fires twice): fixing only one
@@ -104,7 +108,7 @@ occurrence leaves the rule — and the score — unchanged until you clear them 
 composeDoctor { failBelow.set(80) }
 ```
 
-`./gradlew -p playground composeDoctor` now exits non-zero (74 < 80) and `score.json` shows
+`./gradlew -p playground composeDoctor` now exits non-zero (72 < 80) and `score.json` shows
 `"status": "below_gate"`. Fix findings until the score clears the bar.
 
 ## 6. Try the agent loop

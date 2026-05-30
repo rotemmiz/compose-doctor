@@ -121,5 +121,19 @@ object RuleMap {
 
     fun dimensionFor(ruleId: String): Dimension = infoFor(ruleId).dimension
 
+    /**
+     * Resolves a dimension using the rule's own mapping when known, otherwise the detekt rule set
+     * it came from (e.g. `potential-bugs`). Keeps the explicit map small while still bucketing the
+     * general detekt rules sensibly.
+     */
+    fun dimensionFor(ruleId: String, ruleSet: String?): Dimension = when {
+        ruleId in map -> map.getValue(ruleId).dimension
+        else -> when (ruleSet) {
+            "potential-bugs", "coroutines" -> Dimension.STATE_CORRECTNESS
+            "performance" -> Dimension.PERFORMANCE
+            else -> Dimension.ARCHITECTURE // exceptions, complexity, empty-blocks, ...
+        }
+    }
+
     fun isKnown(ruleId: String): Boolean = ruleId in map
 }
