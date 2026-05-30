@@ -65,7 +65,7 @@ compose-doctor — health score: 72/100  [NEEDS_WORK]
 ```
 
 Outputs:
-- `build/reports/compose-doctor/score.json` — machine-readable score + findings (for agents/CI):
+- `build/reports/compose-doctor/score.json` — machine-readable score + findings (for agents/CI). Excerpt:
 
   ```json
   {

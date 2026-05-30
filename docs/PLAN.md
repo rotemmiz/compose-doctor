@@ -73,7 +73,7 @@ Lean on Gradle, don't reinvent: per-module detekt/lint tasks are **cacheable** w
 
 ## Trend tracking
 
-Write each run's score to `.compose-doctor/history.json` (committable). The task prints the delta vs the previous run. In CI, compare the PR's score against the base branch and include it in the sticky comment.
+Write each run's score to `.compose-doctor/history.jsonl` (committable). The task prints the delta vs the previous run. In CI, compare the PR's score against the base branch and include it in the sticky comment.
 
 ## Build phases
 
