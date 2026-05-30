@@ -28,33 +28,39 @@ What the tool emits and the role each artifact plays:
 
 ### score.json (schemaVersion 1)
 
+Real excerpt from the playground's first run (trimmed):
+
 ```json
 {
   "schemaVersion": 1,
   "rulesetVersion": "compose-rules 0.4.22 · detekt 1.23.7",
   "status": "ok",                       // "ok" | "below_gate"
-  "score": 95,
-  "label": "GREAT",                     // 75+ GREAT · 50-74 NEEDS_WORK · <50 CRITICAL
-  "uniqueErrorRules": 0,
-  "uniqueWarningRules": 7,
-  "totalFindings": 7,
-  "dimensions": { "ARCHITECTURE": 96, "STATE_CORRECTNESS": 99, "...": 100 },
-  "delta": {                            // null on the first run
-    "vs": "previous run", "score": 1,
-    "newRules": [], "fixedRules": ["ComposableNaming"]
-  },
+  "score": 72,
+  "label": "NEEDS_WORK",                // 75+ GREAT · 50-74 NEEDS_WORK · <50 CRITICAL
+  "uniqueErrorRules": 9,
+  "uniqueWarningRules": 19,
+  "totalFindings": 34,
+  "dimensions": { "ACCESSIBILITY": 100, "ARCHITECTURE": 82, "PERFORMANCE": 96,
+                  "SECURITY": 100, "STATE_CORRECTNESS": 94 },
+  "delta": null,                        // null on the first run; see below
   "byRule": [                           // the remediation plan, best score-per-fix first
-    { "ruleId": "RememberMissing", "severity": "WARNING", "dimension": "STATE_CORRECTNESS",
-      "count": 1, "scoreImpactIfCleared": 0.75, "autoFixable": false,
-      "docsUrl": "https://mrmans0n.github.io/compose-rules/rules/#...",
-      "fixHint": "Wrap the mutableStateOf(...) call in remember { }." }
+    { "ruleId": "CompositionLocalAllowlist", "severity": "ERROR", "dimension": "ARCHITECTURE",
+      "count": 1, "scoreImpactIfCleared": 1.5, "autoFixable": false, "docsUrl": null,
+      "fixHint": "Avoid this CompositionLocal or add it to the allowlist." }
   ],
   "findings": [
-    { "id": "<stable fingerprint>", "ruleId": "RememberMissing", "dimension": "STATE_CORRECTNESS",
-      "severity": "WARNING", "file": "src/main/kotlin/...", "line": 45, "engine": "detekt",
-      "message": "..." }
+    { "id": "09e793e8a952", "ruleId": "NestedBlockDepth", "dimension": "ARCHITECTURE",
+      "severity": "WARNING",
+      "file": "src/main/kotlin/dev/composedoctor/playground/data/FeedRepository.kt",
+      "line": 24, "engine": "detekt", "message": "Function classify is nested too deeply." }
   ]
 }
+```
+
+From the next run, `delta` is populated, e.g. after fixing one rule:
+
+```json
+"delta": { "vs": "previous run", "score": 2, "newRules": [], "fixedRules": ["RememberMissing"] }
 ```
 
 Why each field exists:

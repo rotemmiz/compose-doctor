@@ -1,5 +1,13 @@
 # compose-doctor — Implementation Plan
 
+> **Status note (historical doc).** This is the original design plan. For *current* behavior see
+> [README](../README.md), [RULES.md](RULES.md), and [AGENT-HARNESS.md](AGENT-HARNESS.md). Some
+> specifics below evolved: there is no `composeDoctorBaseline` task yet and no merged
+> `compose-doctor.sarif` (we read detekt's SARIF directly); config is detekt-native
+> (`config/detekt/detekt.yml`) rather than a single bundled file; trend history is
+> `.compose-doctor/history.jsonl`; per-engine strictness is set via `composeDoctor { detekt/compose
+> = EngineLevel.* }`; android-lint (Security/Accessibility) is still pending.
+
 ## Context
 
 There is no single drop-in equivalent of [React Doctor](https://github.com/millionco/react-doctor) / [react.doctor](https://www.react.doctor/) for Android Jetpack Compose. The pieces exist but are **unbundled**: deterministic static analysis lives in `compose-rules` (mrmans0n) and Slack's `compose-lints`, run via detekt/ktlint/android-lint; there are scattered AI agent "compose skills"; but **nobody ships the React Doctor package** — one tool that produces a deterministic **0–100 health score**, gives an **agent a structured fix loop**, and drops a **CI/PR gate** in.
