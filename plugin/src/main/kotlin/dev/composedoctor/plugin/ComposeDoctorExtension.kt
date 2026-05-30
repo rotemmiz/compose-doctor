@@ -14,10 +14,9 @@ abstract class ComposeDoctorExtension {
     abstract val autoConfigureDetekt: Property<Boolean>
 
     /**
-     * Optional detekt-format config layered on top of compose-doctor's bundled policy (your
-     * settings win). Use it to disable a rule (`active: false`), change a severity
-     * (`severity: warning`), or exclude paths. If unset, a `compose-doctor.yml` at the project root
-     * is picked up automatically. See docs/RULES.md.
+     * Optional explicit detekt config to layer on top of compose-doctor's bundled policy (your
+     * settings win). Usually unnecessary: detekt's own `config/detekt/detekt.yml` and anything set
+     * on the `detekt {}` extension are honoured automatically. See docs/RULES.md.
      */
     abstract val configFile: RegularFileProperty
 

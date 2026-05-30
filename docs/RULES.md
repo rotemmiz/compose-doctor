@@ -51,19 +51,16 @@ Display buckets only (they don't weight the overall score):
 
 ## Customizing
 
-compose-doctor layers a **detekt-format config of your own on top of the bundled policy** — your
-settings win. Drop a `compose-doctor.yml` at the project root (auto-detected), or point at one:
+compose-doctor has **no config format of its own** — you customise it through the engines' own
+configs, layered over the bundled policy so your settings win.
 
-```kotlin
-composeDoctor {
-    configFile = layout.projectDirectory.file("config/compose-doctor.yml")
-}
-```
-
-`compose-doctor.yml` is plain detekt config. The three things you'll usually do — the same ones a
-React Doctor config does — are disable a rule, change its severity, and exclude paths:
+**detekt / compose-rules** — use detekt's native config at **`config/detekt/detekt.yml`** (its
+conventional path, honoured automatically; compose-rules has no separate file — it's the `Compose:`
+section in there). The three things you'll usually do — the same ones a React Doctor config does —
+are disable a rule, change its severity, and exclude paths:
 
 ```yaml
+# config/detekt/detekt.yml
 Compose:
   ModifierMissing:
     active: false          # disable a rule
@@ -73,11 +70,14 @@ potential-bugs:
   excludes: ['**/generated/**']   # scope a rule set away from generated code
 ```
 
-Other detekt mechanisms apply unchanged:
+Anything set on the `detekt {}` extension is honoured too. Point elsewhere with
+`composeDoctor.configFile = file(...)` if you don't use the conventional path.
 
-- **Accept existing debt:** a detekt `baseline.xml`.
+- **Accept existing debt:** detekt's `baseline.xml` (`detekt { baseline = file(...) }`).
 - **Silence locally:** `@Suppress("RuleName")` in code.
-- **Own it entirely:** set `composeDoctor.autoConfigureDetekt = false` to manage detekt yourself;
-  compose-doctor then only aggregates and scores the SARIF you produce.
+- **android-lint** (once wired): its own `lint.xml`, the `lint { }` DSL, `lint-baseline.xml`, and
+  `@SuppressLint` — compose-doctor will read lint's results, not re-configure it.
+- **Own it entirely:** `composeDoctor.autoConfigureDetekt = false` — compose-doctor then only
+  aggregates and scores the SARIF you produce.
 
-> Reusing detekt's config format is deliberate — no parallel config system to learn or maintain.
+> Reusing each tool's own config is deliberate — no parallel config system to learn or maintain.
