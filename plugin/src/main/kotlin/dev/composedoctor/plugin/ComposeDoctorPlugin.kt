@@ -20,6 +20,8 @@ class ComposeDoctorPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         val ext = target.extensions.create("composeDoctor", ComposeDoctorExtension::class.java)
         ext.autoConfigureDetekt.convention(true)
+        ext.detekt.convention(EngineLevel.ERRORS_AND_WARNINGS)
+        ext.compose.convention(EngineLevel.ERRORS_AND_WARNINGS)
         ext.reportJson.convention(
             target.layout.buildDirectory.file("reports/compose-doctor/score.json"),
         )
@@ -40,6 +42,8 @@ class ComposeDoctorPlugin : Plugin<Project> {
             t.historyFile.set(ext.historyFile)
             t.rulesetVersion.set("compose-rules $COMPOSE_RULES_VERSION · detekt $DETEKT_VERSION")
             t.projectDir.set(target.layout.projectDirectory)
+            t.detektLevel.set(ext.detekt)
+            t.composeLevel.set(ext.compose)
         }
 
         target.afterEvaluate {
@@ -59,13 +63,20 @@ class ComposeDoctorPlugin : Plugin<Project> {
             "io.nlopez.compose.rules:detekt:$COMPOSE_RULES_VERSION",
         )
 
+        val ext = target.extensions.getByType(ComposeDoctorExtension::class.java)
         target.extensions.configure(DetektExtension::class.java) { d ->
             d.buildUponDefaultConfig = true
             // Respect the project's own detekt config (config/detekt/detekt.yml, anything set on the
             // detekt {} extension, or composeDoctor.configFile) and layer our bundled policy UNDER
             // it — detekt merges later files over earlier, so the project's config wins.
             val projectConfigs = (d.config.files.toList() + nativeDetektConfigs(target)).distinct()
-            d.config.setFrom(DetektConfig.materialize(target))
+            d.config.setFrom(
+                DetektConfig.materialize(
+                    target,
+                    applyDetektSeverities = ext.detekt.get().appliesSeverityOverlay,
+                    applyComposeSeverities = ext.compose.get().appliesSeverityOverlay,
+                ),
+            )
             projectConfigs.forEach { d.config.from(it) }
         }
 

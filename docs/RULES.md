@@ -49,6 +49,29 @@ Display buckets only (they don't weight the overall score):
 | Architecture | Compose API/naming/modifier rules · detekt `exceptions`, `complexity`, `empty-blocks` |
 | Security / Accessibility | android-lint (pending) |
 
+## Strictness per engine
+
+compose-doctor is a thin wrapper over the engines: they own *which rules exist* (their native
+configs); the `composeDoctor { }` DSL owns *how strict the score is* per engine.
+
+```kotlin
+composeDoctor {
+    detekt  = EngineLevel.ERRORS_AND_WARNINGS   // off | AS_IS | ERRORS | ERRORS_AND_WARNINGS
+    compose = EngineLevel.ERRORS_AND_WARNINGS
+}
+```
+
+| Level | Meaning |
+|---|---|
+| `OFF` | exclude this engine from the score entirely |
+| `AS_IS` | trust the engine's own severities — skip compose-doctor's curated error/warning remap |
+| `ERRORS` | apply the curated tiers, then count only the error tier (genuine bugs) |
+| `ERRORS_AND_WARNINGS` | apply the curated tiers, count errors and warnings (default) |
+
+"detekt" = the general detekt rule sets; "compose" = the compose-rules ruleset. They're independent,
+so e.g. `compose = ERRORS_AND_WARNINGS` with `detekt = ERRORS` scores all Compose issues but only
+detekt's genuine bugs. This dial is coarse; for per-rule control use the engine's own config below.
+
 ## Customizing
 
 compose-doctor has **no config format of its own** — you customise it through the engines' own

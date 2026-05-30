@@ -13,6 +13,12 @@ abstract class ComposeDoctorExtension {
      */
     abstract val autoConfigureDetekt: Property<Boolean>
 
+    /** How much the general detekt rules contribute to the score. Default: ERRORS_AND_WARNINGS. */
+    abstract val detekt: Property<EngineLevel>
+
+    /** How much the compose-rules contribute to the score. Default: ERRORS_AND_WARNINGS. */
+    abstract val compose: Property<EngineLevel>
+
     /**
      * Optional explicit detekt config to layer on top of compose-doctor's bundled policy (your
      * settings win). Usually unnecessary: detekt's own `config/detekt/detekt.yml` and anything set
