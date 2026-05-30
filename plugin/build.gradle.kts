@@ -6,8 +6,6 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":scoring"))
-    implementation(project(":rule-map"))
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.detekt.gradle.plugin)
     testImplementation(libs.junit.jupiter)
@@ -42,4 +40,26 @@ tasks.test {
 
 kotlin {
     jvmToolchain(21)
+}
+
+// Add license + developer metadata to the published POM (plugin-publish generates the rest).
+afterEvaluate {
+    publishing {
+        publications.withType<org.gradle.api.publish.maven.MavenPublication>().configureEach {
+            pom {
+                licenses {
+                    license {
+                        name = "MIT"
+                        url = "https://opensource.org/licenses/MIT"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "rotemmiz"
+                        name = "Rotem Meidan"
+                    }
+                }
+            }
+        }
+    }
 }

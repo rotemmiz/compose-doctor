@@ -28,9 +28,10 @@ Android SDK) and a `composeDoctorBaseline` task to seed detekt's `baseline.xml`.
 
 Gradle plugin only — no standalone CLI. The plugin orchestrates detekt as a cacheable Gradle task and aggregates its **SARIF** output (it does not embed detekt-core).
 
-- `plugin/` — registers the `composeDoctor` task; applies detekt + `compose-rules`, layers the bundled policy (`src/main/resources/policy/*.yml`), filters findings per the engine levels, scores, and reports. (`composeDoctorBaseline` and AGP `lint` are planned, not built.)
-- `scoring/` — pure, deterministic scoring function. Must be reproducible; cover with tests.
-- `rule-map/` — `ruleId → dimension` (+ docsUrl / fixHint) taxonomy, with a rule-set fallback. Data, not logic.
+- `plugin/` — the whole self-contained plugin (one published artifact). Registers the `composeDoctor` task; applies detekt + `compose-rules`, layers the bundled policy (`src/main/resources/policy/*.yml`), filters findings per the engine levels, scores, and reports. Internal packages:
+  - `dev.composedoctor.scoring` — pure, deterministic scoring function + model. Must be reproducible; cover with tests.
+  - `dev.composedoctor.rulemap` — `ruleId → dimension` (+ docsUrl / fixHint) taxonomy, with a rule-set fallback. Data, not logic.
+  - (`composeDoctorBaseline` and AGP `lint` are planned, not built.)
 - `skill/` — agent skill (`SKILL.md`): run task → read SARIF → fix one rule → re-run.
 - `.github/` — reusable GitHub Action running `./gradlew composeDoctor`.
 
@@ -58,11 +59,13 @@ branch. Commits and PRs carry no Claude co-authorship.
 
 ## Modules
 
-- `scoring/` — pure `Scorer` + model. `rule-map/` — `ruleId → Dimension` taxonomy.
-- `plugin/` — `dev.composedoctor` plugin: applies detekt + the `io.nlopez.compose.rules`
-  ruleset (policy bundled at `plugin/src/main/resources/policy/*.yml`: `base` scope + per-engine
-  `*-severities` overlays), reads the detekt SARIF (`SarifReader`), filters by engine level
-  (`EngineFilter`), scores it, reports (`score.json` + console), writes trend history, gates via `failBelow`.
+- `plugin/` — the `dev.composedoctor` plugin (self-contained; the only published module). Applies
+  detekt + the `io.nlopez.compose.rules` ruleset (policy bundled at
+  `plugin/src/main/resources/policy/*.yml`: `base` scope + per-engine `*-severities` overlays),
+  reads the detekt SARIF (`SarifReader`), filters by engine level (`EngineFilter`), scores it
+  (`scoring` package), reports (`score.json` + console), writes trend history, gates via `failBelow`.
+  The `scoring` and `rulemap` packages live inside this module (no separate Gradle modules, so the
+  published jar has no unpublished dependencies).
 - `playground/` — standalone composite build (`includeBuild("..")`) — a deliberately-flawed feed
   app used to verify detection against the plugin sources (scores ~72/100 NEEDS_WORK).
 

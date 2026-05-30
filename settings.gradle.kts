@@ -8,4 +8,4 @@ dependencyResolutionManagement {
     }
 }
 
-include("scoring", "rule-map", "plugin")
+include("plugin")

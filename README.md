@@ -137,9 +137,10 @@ The full agent loop, the `score.json` contract, and the memory/integrity model a
 
 ## How it works
 
-A Gradle plugin orchestrates existing engines and aggregates their SARIF — it does not embed
-detekt-core or reimplement rules. `scoring/` is a pure, deterministic function; `rule-map/` maps
-rule IDs to dimensions; `plugin/` does the wiring, scoring, and reporting.
+A single self-contained Gradle plugin orchestrates the engines and aggregates their SARIF — it does
+not embed detekt-core or reimplement rules. Internally: the `scoring` package is a pure,
+deterministic function; `rulemap` maps rule IDs to dimensions; the plugin does the wiring, scoring,
+and reporting.
 
 ## Roadmap
 
