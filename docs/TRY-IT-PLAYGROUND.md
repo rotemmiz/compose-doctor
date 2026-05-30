@@ -68,14 +68,14 @@ See [AGENT-HARNESS.md](AGENT-HARNESS.md) for the full schema.
 compose-doctor's curated policy ([RULES.md](RULES.md)) the pure-style detekt rules (MagicNumber,
 WildcardImport, naming, …) are disabled, so what remains is Compose health + real bugs. By file:
 
-| File | Representative issues (🔴 = error tier) |
-|---|---|
-| `ui/FeedScreen.kt` | ComposableNaming, ModifierMissing, 🔴ViewModelInjection, UnstableCollections, MutableParams, LongParameterList, LambdaParameterEventTrailing, 🔴LambdaParameterInRestartableEffect |
-| `ui/components/Cards.kt` | ModifierNaming, ModifierWithoutDefault, ComposableParamOrder, ModifierReused, ModifierNotUsedAtRoot, 🔴MultipleEmitters, 🔴ContentEmitterReturningValues |
-| `ui/state/Editors.kt` | 🔴MutableStateParam, 🔴RememberMissing, 🔴MutableStateAutoboxing |
-| `ui/theme/Locals.kt` | CompositionLocalNaming, 🔴CompositionLocalAllowlist |
-| `ui/Previews.kt` | PreviewPublic |
-| `data/FeedRepository.kt` | 🔴SwallowedException, TooGenericExceptionCaught/Thrown, ThrowingExceptionsWithoutMessageOrCause, ComplexCondition, NestedBlockDepth, EmptyFunctionBlock |
+| File | Error tier (−1.5) | Warning tier (−0.75) |
+|---|---|---|
+| `ui/FeedScreen.kt` | ViewModelInjection, LambdaParameterInRestartableEffect | ComposableNaming, ModifierMissing, UnstableCollections, MutableParams, LongParameterList, LambdaParameterEventTrailing |
+| `ui/components/Cards.kt` | MultipleEmitters, ContentEmitterReturningValues | ModifierNaming, ModifierWithoutDefault, ComposableParamOrder, ModifierReused, ModifierNotUsedAtRoot |
+| `ui/state/Editors.kt` | MutableStateParam, RememberMissing, MutableStateAutoboxing | — |
+| `ui/theme/Locals.kt` | CompositionLocalAllowlist | CompositionLocalNaming |
+| `ui/Previews.kt` | — | PreviewPublic |
+| `data/FeedRepository.kt` | SwallowedException | TooGenericExceptionCaught, TooGenericExceptionThrown, ThrowingExceptionsWithoutMessageOrCause, ComplexCondition, NestedBlockDepth, EmptyFunctionBlock |
 
 Each composable is annotated with the rule it is meant to trip (search for `// ISSUE`).
 
