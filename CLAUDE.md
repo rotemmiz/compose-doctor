@@ -50,6 +50,12 @@ Counts **unique rules triggered, not instances; no size normalization** (transla
 - Dimensions are **display buckets**, not score weights.
 - Tech: Kotlin, Gradle plugin, detekt + `io.nlopez.compose.rules`, AGP lint, SARIF, kotlinx.serialization.
 
+## Contributing workflow
+
+All changes go through a branch → PR → green CI → merge. **Never push directly to `main`.**
+Open a PR, wait for the `ci` and `pr-gate` checks to pass, then merge (squash) and delete the
+branch. Commits and PRs carry no Claude co-authorship.
+
 ## Modules
 
 - `scoring/` — pure `Scorer` + model. `rule-map/` — `ruleId → Dimension` taxonomy.
