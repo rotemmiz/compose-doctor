@@ -1,0 +1,19 @@
+# Dogfoods the reusable compose-doctor gate against this repo's playground module.
+name: pr-gate
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+  health:
+    uses: ./.github/workflows/compose-doctor.yml
+    with:
+      gradle-args: "-p playground composeDoctor"
+      report-json: playground/build/reports/compose-doctor/score.json
+      sarif: playground/build/reports/detekt/detekt.sarif
+      fail-below: 75
