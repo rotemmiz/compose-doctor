@@ -51,14 +51,33 @@ Display buckets only (they don't weight the overall score):
 
 ## Customizing
 
-The policy is a detekt-format config layered on detekt's defaults, so you customise it with detekt's
-own mechanisms — no parallel config system:
+compose-doctor layers a **detekt-format config of your own on top of the bundled policy** — your
+settings win. Drop a `compose-doctor.yml` at the project root (auto-detected), or point at one:
+
+```kotlin
+composeDoctor {
+    configFile = layout.projectDirectory.file("config/compose-doctor.yml")
+}
+```
+
+`compose-doctor.yml` is plain detekt config. The three things you'll usually do — the same ones a
+React Doctor config does — are disable a rule, change its severity, and exclude paths:
+
+```yaml
+Compose:
+  ModifierMissing:
+    active: false          # disable a rule
+  RememberMissing:
+    severity: warning      # downgrade error -> warning (or upgrade warning -> error)
+potential-bugs:
+  excludes: ['**/generated/**']   # scope a rule set away from generated code
+```
+
+Other detekt mechanisms apply unchanged:
 
 - **Accept existing debt:** a detekt `baseline.xml`.
-- **Silence locally:** `@Suppress("RuleName")`.
-- **Change a rule / severity / exclude paths:** your own detekt config (disable a rule with
-  `active: false`, downgrade with `severity: warning`, scope with `excludes`).
+- **Silence locally:** `@Suppress("RuleName")` in code.
+- **Own it entirely:** set `composeDoctor.autoConfigureDetekt = false` to manage detekt yourself;
+  compose-doctor then only aggregates and scores the SARIF you produce.
 
-> The dedicated `composeDoctor { configFile = … }` hook for layering your overrides on top of the
-> bundled policy is tracked separately; until then, set `composeDoctor.autoConfigureDetekt = false`
-> to fully own the detekt configuration yourself.
+> Reusing detekt's config format is deliberate — no parallel config system to learn or maintain.
