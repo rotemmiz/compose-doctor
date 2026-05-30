@@ -95,3 +95,5 @@ Write each run's score to `.compose-doctor/history.json` (committable). The task
 - Fixture Compose module seeded with known anti-patterns (ViewModel passed to a child composable, `mutableStateOf` without `remember`, unstable list param, `Modifier` ordering, a missing `contentDescription` for the lint/a11y path).
 - Tests assert: (a) each anti-pattern produces its expected `Finding` + correct dimension; (b) the score is byte-identical across repeated runs (determinism); (c) clearing the last instance of a rule increases the score, partial fixes do not.
 - Manual end-to-end: run `./gradlew composeDoctor` on the fixture and a real OSS Compose app; confirm the terminal summary, merged SARIF, and 0–100 score are sensible.
+
+<!-- compose-doctor PR-gate verification -->
