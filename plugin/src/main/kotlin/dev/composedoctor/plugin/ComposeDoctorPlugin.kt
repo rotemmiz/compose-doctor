@@ -61,10 +61,12 @@ class ComposeDoctorPlugin : Plugin<Project> {
 
         target.extensions.configure(DetektExtension::class.java) { d ->
             d.buildUponDefaultConfig = true
-            // Order matters: detekt merges later files over earlier ones, so the user's overrides
-            // (compose-doctor.yml) win over the bundled policy.
+            // Respect the project's own detekt config (config/detekt/detekt.yml, anything set on the
+            // detekt {} extension, or composeDoctor.configFile) and layer our bundled policy UNDER
+            // it — detekt merges later files over earlier, so the project's config wins.
+            val projectConfigs = (d.config.files.toList() + nativeDetektConfigs(target)).distinct()
             d.config.setFrom(DetektConfig.materialize(target))
-            userConfig(target)?.let { d.config.from(it) }
+            projectConfigs.forEach { d.config.from(it) }
         }
 
         val detektTasks = target.tasks.withType(Detekt::class.java)
@@ -82,12 +84,12 @@ class ComposeDoctorPlugin : Plugin<Project> {
         }
     }
 
-    /** The user's override config: the explicit [ComposeDoctorExtension.configFile], else a
-     *  `compose-doctor.yml` at the project root if present. */
-    private fun userConfig(target: Project): java.io.File? {
-        val ext = target.extensions.getByType(ComposeDoctorExtension::class.java)
-        ext.configFile.orNull?.asFile?.let { return it }
-        return target.layout.projectDirectory.file("compose-doctor.yml").asFile.takeIf { it.exists() }
+    /** detekt's own config files to honour: its conventional path plus an explicit override. */
+    private fun nativeDetektConfigs(target: Project): List<java.io.File> = buildList {
+        target.layout.projectDirectory.file("config/detekt/detekt.yml").asFile
+            .takeIf { it.exists() }?.let(::add)
+        target.extensions.getByType(ComposeDoctorExtension::class.java)
+            .configFile.orNull?.asFile?.let(::add)
     }
 
     companion object {
