@@ -45,6 +45,9 @@ git clone https://github.com/rotemmiz/compose-doctor && cd compose-doctor
 ./gradlew -p playground composeDoctor
 ```
 
+> 📖 [docs/TRY-IT-PLAYGROUND.md](docs/TRY-IT-PLAYGROUND.md) is a guided walkthrough — run it, read
+> the report, fix a rule, and watch the score move.
+
 ```
 compose-doctor — health score: 95/100  [GREAT]
   unique error rules:   0
@@ -109,6 +112,9 @@ plus Compose best-practices to avoid the findings up front. Install:
 ```bash
 cp -r skill/compose-doctor .claude/skills/compose-doctor
 ```
+
+The full agent loop, the `score.json` contract, and the memory/integrity model are specified in
+[docs/AGENT-HARNESS.md](docs/AGENT-HARNESS.md).
 
 ## How it works
 

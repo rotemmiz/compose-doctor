@@ -16,15 +16,25 @@ existing codebase and to **verify** Compose you just wrote.
    ./gradlew composeDoctor          # whole project
    ./gradlew :feature:home:composeDoctor   # a single module, if applied there
    ```
-2. **Read the machine-readable report**, not just the console:
-   - `build/reports/compose-doctor/score.json` — `score`, `label`, per-`dimension` sub-scores, and the full `findings` array (`ruleId`, `dimension`, `severity`, `file`, `line`, `message`).
+2. **Read the machine-readable report**, not the console:
+   - `build/reports/compose-doctor/score.json` — `score`, `status` (`ok`/`below_gate`),
+     per-`dimension` sub-scores, a **`byRule`** remediation plan, a **`delta`** vs the previous
+     run, and the `findings` array (each with a stable `id`).
    - `build/reports/detekt/detekt.sarif` — same findings in SARIF, with precise locations.
-3. **Fix the highest-value rule first.** The score counts *unique rule IDs*, not instances:
-   `score = 100 − uniqueErrorRules×1.5 − uniqueWarningRules×0.75`. So **fixing every instance of
-   one rule raises the score; fixing only some instances does not.** Pick a `ruleId`, fix all of
-   its findings, then move to the next.
-4. **Re-run and confirm** the score went up and the rule is gone. Repeat until the score is
-   satisfactory (75+ is "Great").
+3. **Take `byRule[0]`.** It is pre-sorted by score-per-fix and carries `scoreImpactIfCleared`,
+   `fixHint`, and `docsUrl`. The score counts *unique rule IDs*, not instances
+   (`score = 100 − uniqueErrorRules×1.5 − uniqueWarningRules×0.75`), so **fix every instance of
+   that one rule** — partial fixes score nothing.
+4. **Re-run and verify**: check `delta.fixedRules` contains the rule you targeted, the score went
+   up, and `delta.newRules` is empty (you didn't introduce anything). Then **also run
+   `:module:compileKotlin` / tests** — a Compose fix that changes a signature can break call sites;
+   a higher score with a broken build is a regression, so revert if so.
+5. Repeat until the score is satisfactory (75+ is "Great") or the remaining rules need human
+   judgement.
+
+**Integrity:** fix, don't suppress. Do **not** add `@Suppress`, edit the baseline, or disable rules
+in `detekt.yml` to raise the score unless the user explicitly approved it — and if so, leave a
+justification comment at the suppression site. Gaming the score is a failure.
 
 ## Writing good Compose in the first place
 
