@@ -60,24 +60,104 @@ jobs:
         uses: actions/github-script@v7
         env:
           REPORT_JSON: ${{ inputs.report-json }}
+          GATE: ${{ inputs.fail-below }}
         with:
           script: |
             const fs = require('fs');
             const marker = '<!-- compose-doctor -->';
             const r = JSON.parse(fs.readFileSync(process.env.REPORT_JSON, 'utf8'));
+            const gate = Number(process.env.GATE || 0);
+
+            // Verdict pill — a shields.io badge so the comment carries a real colored
+            // badge like composedoctor.dev. Color tracks the gate result, or the score
+            // band when there's no gate (≥75 green · 50–74 amber · <50 red). The alt
+            // text doubles as a graceful fallback if the image is ever blocked.
+            const gated = gate > 0;
+            const passed = !gated || r.score >= gate;
+            const enc = s => encodeURIComponent(s).replace(/-/g, '--').replace(/%20/g, '_');
+            const verdict = gated ? `PR Gate ${passed ? 'Passed' : 'Failed'}` : 'compose-doctor';
+            const color = gated
+              ? (passed ? 'brightgreen' : 'red')
+              : (r.score >= 75 ? 'brightgreen' : (r.score >= 50 ? 'orange' : 'red'));
+            const badge = `https://img.shields.io/badge/${enc(verdict)}-${enc(r.score + ' / 100')}-${color}`;
+            const badgeAlt = `${verdict} — ${r.score} / 100`;
+
+            // Delta vs the previous run, e.g. "(+13 delta)".
+            let delta = '';
+            if (r.delta && typeof r.delta.score === 'number') {
+              const d = r.delta.score;
+              delta = ` _(${d >= 0 ? '+' : ''}${d} delta)_`;
+            }
+
+            // Score table — mirrors the demo: Metric / Score / Gate Threshold.
+            const scoreCell = `**${r.score} / 100**${delta}`;
+            const table = gated
+              ? [
+                  '| Metric | Score | Gate Threshold |',
+                  '|---|---|---|',
+                  `| Compose Health | ${scoreCell} | **${gate} / 100** |`,
+                ]
+              : [
+                  '| Metric | Score |',
+                  '|---|---|',
+                  `| Compose Health | ${scoreCell} |`,
+                ];
+
+            // Outstanding issues — errors first, capped, rule ids linked to docs.
+            const docs = {}, hints = {};
+            for (const ru of r.byRule || []) {
+              if (ru.docsUrl) docs[ru.ruleId] = ru.docsUrl;
+              if (ru.fixHint) hints[ru.ruleId] = ru.fixHint;
+            }
+            const rank = { ERROR: 0, WARNING: 1, INFO: 2 };
+            const findings = (r.findings || []).slice().sort((a, b) =>
+              (rank[a.severity] ?? 9) - (rank[b.severity] ?? 9) ||
+              a.file.localeCompare(b.file) || a.line - b.line);
+            const cap = 10;
+            const issues = [];
+            if (findings.length) {
+              const noun = findings.length === 1 ? 'outstanding issue' : 'outstanding issues';
+              issues.push(`**${findings.length} ${noun}:**`, '');
+              for (const f of findings.slice(0, cap)) {
+                const rule = docs[f.ruleId]
+                  ? `[\`${f.ruleId}\`](${docs[f.ruleId]})`
+                  : `\`${f.ruleId}\``;
+                // Prefer the concise fix hint; fall back to the engine message minus its
+                // trailing "See … for more information." docs pointer.
+                const msg = (hints[f.ruleId] || f.message.replace(/\s*See https?:\/\/\S+.*$/i, ''))
+                  .replace(/\s+/g, ' ').trim();
+                issues.push(`- ${rule} in \`${f.file}:${f.line}\` — ${msg}`);
+              }
+              if (findings.length > cap) issues.push(`- …and ${findings.length - cap} more.`);
+            } else {
+              issues.push('**No outstanding issues.** Nice work.');
+            }
+
+            // Dimension breakdown — kept for completeness, tucked away to match the demo's
+            // clean look.
             const dims = Object.entries(r.dimensions)
               .map(([k, v]) => `| ${k} | ${v}/100 |`).join('\n');
+
             const body = [
               marker,
-              `## 🩺 compose-doctor — ${r.score}/100 (${r.label})`,
+              `![${badgeAlt}](${badge})`,
               '',
-              `Unique error rules: **${r.uniqueErrorRules}** · `
-                + `warning rules: **${r.uniqueWarningRules}** · `
-                + `total findings: **${r.totalFindings}**`,
+              `**compose-doctor** evaluated this PR's Compose health score.`,
+              '',
+              ...table,
+              '',
+              ...issues,
+              '',
+              '<details><summary>Score by dimension</summary>',
               '',
               '| Dimension | Score |',
               '|---|---|',
               dims,
+              '',
+              `Unique error rules: **${r.uniqueErrorRules}** · `
+                + `warning rules: **${r.uniqueWarningRules}** · `
+                + `total findings: **${r.totalFindings}**`,
+              '</details>',
             ].join('\n');
 
             const { owner, repo } = context.repo;
