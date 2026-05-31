@@ -132,7 +132,7 @@ plus Compose best-practices to avoid the findings up front.
 
 ```text
 /plugin marketplace add rotemmiz/compose-doctor
-/plugin install compose-doctor
+/plugin install compose-doctor@compose-doctor
 ```
 
 The skill is **self-bootstrapping**: if a module has no `composeDoctor` task yet, it runs the
