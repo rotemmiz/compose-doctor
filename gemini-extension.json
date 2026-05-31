@@ -1,0 +1,6 @@
+{
+  "name": "compose-doctor",
+  "version": "0.1.0",
+  "description": "Deterministic 0-100 health score and agent fix-loop for Android Jetpack Compose, wrapping detekt + compose-rules. Provides the /compose-doctor command and AGENTS.md context.",
+  "contextFileName": "AGENTS.md"
+}
