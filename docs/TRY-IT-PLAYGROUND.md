@@ -134,6 +134,11 @@ composeDoctor { failBelow.set(80) }
 ```
 (or, without the marketplace: `cp -r skills/compose-doctor .claude/skills/compose-doctor`)
 
+Using a different agent? Codex, OpenCode, Antigravity, and Cursor auto-read the root
+[`AGENTS.md`](../AGENTS.md) (zero install); Gemini CLI installs it as an extension
+(`gemini extensions install https://github.com/rotemmiz/compose-doctor`). Full matrix in
+[`skills/README.md`](../skills/README.md).
+
 Prompt: *"Run compose-doctor on the playground and raise the score by fixing the findings, one
 rule at a time. Verify the build still compiles, and don't suppress anything."* The agent should
 read `score.json`'s `byRule`, clear the highest-value rule, re-run, and watch the delta — the loop

@@ -175,19 +175,25 @@ $ ./gradlew composeDoctor
 
 <section id="skill">
   <div class="wrap">
-    <div class="step">02 · CLAUDE CODE SKILL</div>
+    <div class="step">02 · AGENT SKILL</div>
     <h2>Run the <code>/compose-doctor</code> skill</h2>
-    <p class="sub">Drop the skill into Claude Code, then invoke it — it knows how to run the task, read the
-      report, and fix the highest-value rule first.</p>
-<pre class="code"><span class="k"># install (Claude Code)</span>
+    <p class="sub">Drop the skill into your agent, then invoke it — it knows how to run the task, read the
+      report, and fix the highest-value rule first. One skill, packaged for every major agent.</p>
+<pre class="code"><span class="k"># Claude Code — install from the marketplace</span>
 /plugin marketplace add rotemmiz/compose-doctor
 /plugin install compose-doctor@compose-doctor
 
+<span class="k"># Gemini CLI — install as an extension</span>
+gemini extensions install https://github.com/rotemmiz/compose-doctor
+
+<span class="k"># Codex · OpenCode · Antigravity · Cursor — zero install</span>
+<span class="muted" style="color:#7c8aa5"># they auto-read AGENTS.md at the repo root</span>
+
 <span class="k"># then, in any Compose project:</span>
 /compose-doctor</pre>
-    <p class="note">Installed from the marketplace — no cloning or copying. Also works with Cursor
-      &amp; Codex: point your agent rules at
-      <a href="https://github.com/rotemmiz/compose-doctor/blob/main/skills/compose-doctor/SKILL.md">skills/compose-doctor/SKILL.md</a>.</p>
+    <p class="note"><code>SKILL.md</code> is the single source of truth; each agent gets a thin wrapper
+      around it. Full install matrix in
+      <a href="https://github.com/rotemmiz/compose-doctor/blob/main/skills/README.md">skills/README.md</a>.</p>
   </div>
 </section>
 
