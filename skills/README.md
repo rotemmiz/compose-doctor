@@ -10,7 +10,7 @@ fix Jetpack Compose issues iteratively, and to write better Compose proactively.
 
 ```text
 /plugin marketplace add rotemmiz/compose-doctor
-/plugin install compose-doctor
+/plugin install compose-doctor@compose-doctor
 ```
 
 **Claude Code — manual copy** (no marketplace):

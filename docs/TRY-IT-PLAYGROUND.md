@@ -130,7 +130,7 @@ composeDoctor { failBelow.set(80) }
 ## 6. Try the agent loop
 
 ```text
-/plugin marketplace add rotemmiz/compose-doctor   # then: /plugin install compose-doctor
+/plugin marketplace add rotemmiz/compose-doctor   # then: /plugin install compose-doctor@compose-doctor
 ```
 (or, without the marketplace: `cp -r skills/compose-doctor .claude/skills/compose-doctor`)
 

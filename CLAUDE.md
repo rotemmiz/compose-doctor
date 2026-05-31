@@ -35,7 +35,7 @@ Gradle plugin only — no standalone CLI. The plugin orchestrates detekt as a ca
 - `skills/compose-doctor/` — agent skill (`SKILL.md`): find-or-bootstrap task → run → read SARIF →
   fix one rule → re-run. Step 0 bootstraps via `init/compose-doctor.init.gradle.kts` if no task exists.
 - `.claude-plugin/` — Claude Code plugin + marketplace manifests, so the skill (and the
-  `/compose-doctor` command in `commands/`) install via `/plugin install compose-doctor`.
+  `/compose-doctor` command in `commands/`) install via `/plugin install compose-doctor@compose-doctor`.
 - `init/` — `compose-doctor.init.gradle.kts`, the zero-touch init script the skill bootstraps with.
 - `.github/` — reusable GitHub Action running `./gradlew composeDoctor`.
 
