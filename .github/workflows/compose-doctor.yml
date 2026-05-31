@@ -68,15 +68,19 @@ jobs:
             const r = JSON.parse(fs.readFileSync(process.env.REPORT_JSON, 'utf8'));
             const gate = Number(process.env.GATE || 0);
 
-            // Verdict banner — GitHub's native alert blocks give us the red/green
-            // "badge" look without any custom styling.
+            // Verdict pill — a shields.io badge so the comment carries a real colored
+            // badge like composedoctor.dev. Color tracks the gate result, or the score
+            // band when there's no gate (≥75 green · 50–74 amber · <50 red). The alt
+            // text doubles as a graceful fallback if the image is ever blocked.
             const gated = gate > 0;
             const passed = !gated || r.score >= gate;
-            const alert = !gated ? 'NOTE' : (passed ? 'TIP' : 'CAUTION');
-            const icon = !gated ? '' : (passed ? '✅ ' : '❌ ');
-            const verdict = !gated
-              ? `compose-doctor — ${r.score} / 100`
-              : `PR Gate ${passed ? 'Passed' : 'Failed'} — ${r.score} / 100`;
+            const enc = s => encodeURIComponent(s).replace(/-/g, '--').replace(/%20/g, '_');
+            const verdict = gated ? `PR Gate ${passed ? 'Passed' : 'Failed'}` : 'compose-doctor';
+            const color = gated
+              ? (passed ? 'brightgreen' : 'red')
+              : (r.score >= 75 ? 'brightgreen' : (r.score >= 50 ? 'orange' : 'red'));
+            const badge = `https://img.shields.io/badge/${enc(verdict)}-${enc(r.score + ' / 100')}-${color}`;
+            const badgeAlt = `${verdict} — ${r.score} / 100`;
 
             // Delta vs the previous run, e.g. "(+13 delta)".
             let delta = '';
@@ -136,8 +140,7 @@ jobs:
 
             const body = [
               marker,
-              `> [!${alert}]`,
-              `> ${icon}**${verdict}**`,
+              `![${badgeAlt}](${badge})`,
               '',
               `**compose-doctor** evaluated this PR's Compose health score.`,
               '',
