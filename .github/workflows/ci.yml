@@ -21,6 +21,9 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - name: Version consistency
+        run: ./scripts/check-version.sh
+
       - name: Build & test
         run: ./gradlew build
 
