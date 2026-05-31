@@ -45,7 +45,7 @@ There is no single drop-in equivalent of [React Doctor](https://github.com/milli
 - `plugin/` — the Gradle plugin: registers `composeDoctor` (+ `composeDoctorBaseline`), wires the engine tasks, owns aggregation/scoring/reporting.
 - `scoring/` — pure, deterministic scoring function `List<Finding> → Score`. Unit-tested for reproducibility.
 - `rule-map/` — the maintained ruleId → dimension + default-severity taxonomy (data, not logic).
-- `skills/compose-doctor/` — agent skill (`SKILL.md`) teaching an agent to run the task, read SARIF, and fix iteratively (packaged as a Claude Code plugin via `.claude-plugin/`).
+- `skills/compose-doctor/` — agent skill (`SKILL.md`, the single source of truth) teaching an agent to run the task, read SARIF, and fix iteratively. Packaged as a Claude Code plugin (`.claude-plugin/`) and re-exposed to other agents via thin wrappers: `AGENTS.md` (Codex/OpenCode/Antigravity/Cursor), a Gemini CLI extension (`gemini-extension.json`), and an OpenCode command (`.opencode/commands/`).
 - `.github/` — reusable GitHub Action that runs `./gradlew composeDoctor` and posts results.
 
 ## Scoring (the differentiator)
