@@ -45,7 +45,11 @@
   .nav-links a:hover{color:var(--ink)}
 
   /* hero */
-  header{border-bottom:1px solid var(--line)}
+  header{
+    border-bottom:1px solid var(--line);
+    background-image: radial-gradient(rgba(14, 165, 164, 0.05) 1.5px, transparent 1.5px);
+    background-size: 24px 24px;
+  }
   .hero{display:grid; grid-template-columns:0.82fr 1.18fr; gap:36px; align-items:center; padding:48px 0 64px}
   .hero h1{font-size:46px; line-height:1.07; letter-spacing:-.02em; margin:0 0 16px}
   .hero p.lead{font-size:18px; color:var(--muted); margin:0 0 26px; max-width:46ch}
@@ -230,9 +234,7 @@
       </div>
     </nav>
   </div>
-</header>
-
-<div class="wrap">
+  <div class="wrap">
   <div class="hero">
     <div>
       <h1>Your agent writes Jetpack&nbsp;Compose.<br>This scores&nbsp;it.</h1>
@@ -263,7 +265,7 @@
       </div>
     </div>
   </div>
-</div>
+</header>
 
 <section id="install">
   <div class="wrap">
