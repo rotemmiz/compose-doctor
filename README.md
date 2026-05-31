@@ -124,9 +124,9 @@ It comments a sticky **🩺 compose-doctor — NN/100** summary on the PR.
 
 ## Agent skill
 
-[`skills/compose-doctor/SKILL.md`](skills/compose-doctor/SKILL.md) teaches a coding agent (Claude
-Code, Cursor, Codex) to run the task, read the SARIF, and fix the highest-value rule iteratively —
-plus Compose best-practices to avoid the findings up front.
+[`skills/compose-doctor/SKILL.md`](skills/compose-doctor/SKILL.md) teaches a coding agent to run the
+task, read the SARIF, and fix the highest-value rule iteratively — plus Compose best-practices to
+avoid the findings up front. It's the single source of truth; the per-agent packaging below wraps it.
 
 **Claude Code — install as a plugin** (bundles the skill + a `/compose-doctor` command):
 
@@ -135,10 +135,20 @@ plus Compose best-practices to avoid the findings up front.
 /plugin install compose-doctor@compose-doctor
 ```
 
-The skill is **self-bootstrapping**: if a module has no `composeDoctor` task yet, it runs the
-bundled [`init/compose-doctor.init.gradle.kts`](init/compose-doctor.init.gradle.kts) to apply the
-plugin without editing any build file. Other agents (or a manual copy) can point at the skill
-directly — see [`skills/README.md`](skills/README.md).
+**Codex · OpenCode · Google Antigravity · Cursor** — zero install: all auto-read the root
+[`AGENTS.md`](AGENTS.md), the neutral mirror of the skill. OpenCode also ships the `/compose-doctor`
+command in-repo at [`.opencode/commands/`](.opencode/commands).
+
+**Gemini CLI** — install as an extension (bundles the command + `AGENTS.md` context):
+
+```bash
+gemini extensions install https://github.com/rotemmiz/compose-doctor
+```
+
+See [`skills/README.md`](skills/README.md) for all install paths. The skill is **self-bootstrapping**:
+if a module has no `composeDoctor` task yet, it runs the bundled
+[`init/compose-doctor.init.gradle.kts`](init/compose-doctor.init.gradle.kts) to apply the plugin
+without editing any build file.
 
 The full agent loop, the `score.json` contract, and the memory/integrity model are specified in
 [docs/AGENT-HARNESS.md](docs/AGENT-HARNESS.md).

@@ -36,6 +36,11 @@ Gradle plugin only — no standalone CLI. The plugin orchestrates detekt as a ca
   fix one rule → re-run. Step 0 bootstraps via `init/compose-doctor.init.gradle.kts` if no task exists.
 - `.claude-plugin/` — Claude Code plugin + marketplace manifests, so the skill (and the
   `/compose-doctor` command in `commands/`) install via `/plugin install compose-doctor@compose-doctor`.
+- **Multi-agent packaging** — `skills/compose-doctor/SKILL.md` is the single source of truth; thin
+  wrappers re-expose it per agent and must stay in sync when the loop changes: `AGENTS.md` (root,
+  auto-read by Codex/OpenCode/Antigravity/Cursor), `gemini-extension.json` + `commands/compose-doctor.toml`
+  (Gemini CLI extension), `.opencode/commands/compose-doctor.md` (OpenCode). The wrappers use the
+  repo-relative init path, not `$CLAUDE_PLUGIN_ROOT` (Claude-only).
 - `init/` — `compose-doctor.init.gradle.kts`, the zero-touch init script the skill bootstraps with.
 - `.github/` — reusable GitHub Action running `./gradlew composeDoctor`.
 
