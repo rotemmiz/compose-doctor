@@ -3,12 +3,15 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>compose-doctor — a deterministic health check for Jetpack Compose</title>
-<meta name="description" content="A deterministic 0–100 health score for Android Jetpack Compose. Runs detekt + compose-rules, gives an agent a structured fix loop, and gates your PRs." />
+<title>compose-doctor - a deterministic health check for Jetpack Compose</title>
+<meta name="description" content="A deterministic 0-100 health score for Android Jetpack Compose. Runs detekt + compose-rules, gives an agent a structured fix loop, and gates your PRs." />
 <link rel="canonical" href="https://composedoctor.dev/" />
-<meta property="og:title" content="compose-doctor — a deterministic health check for Jetpack Compose" />
-<meta property="og:description" content="A deterministic 0–100 health score for Android Jetpack Compose, with an agent fix-loop and a CI/PR gate." />
+<meta property="og:title" content="compose-doctor - a deterministic health check for Jetpack Compose" />
+<meta property="og:description" content="A deterministic 0-100 health score for Android Jetpack Compose, with an agent fix-loop and a CI/PR gate." />
 <meta property="og:url" content="https://composedoctor.dev/" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#ffffff; --ink:#0f172a; --muted:#64748b; --line:#e6e8ee;
@@ -25,7 +28,7 @@
   }
   a{color:var(--accent); text-decoration:none}
   a:hover{text-decoration:underline}
-  code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+  code,pre,.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
   .wrap{max-width:1080px; margin:0 auto; padding:0 22px}
   .btn{display:inline-flex; align-items:center; gap:8px; padding:11px 18px; border-radius:10px;
     border:1px solid var(--line); font-weight:600; font-size:15px}
@@ -35,27 +38,31 @@
 
   /* nav */
   nav{display:flex; align-items:center; justify-content:space-between; padding:20px 0}
-  .brand{display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px}
-  .brand .dot{font-size:20px}
+  .brand{display:flex; align-items:center; gap:8px; font-weight:700; font-size:18px}
+  .brand-logo{display:inline-block; vertical-align:middle; flex-shrink:0}
   .nav-links{display:flex; gap:18px; align-items:center; font-size:15px}
   .nav-links a{color:var(--muted)}
   .nav-links a:hover{color:var(--ink)}
 
   /* hero */
-  header{border-bottom:1px solid var(--line)}
+  header{
+    border-bottom:1px solid var(--line);
+    background-image: radial-gradient(rgba(14, 165, 164, 0.05) 1.5px, transparent 1.5px);
+    background-size: 24px 24px;
+  }
   .hero{display:grid; grid-template-columns:0.82fr 1.18fr; gap:36px; align-items:center; padding:48px 0 64px}
   .hero h1{font-size:46px; line-height:1.07; letter-spacing:-.02em; margin:0 0 16px}
   .hero p.lead{font-size:18px; color:var(--muted); margin:0 0 26px; max-width:46ch}
   .cta{display:flex; gap:12px; flex-wrap:wrap}
 
   /* terminal */
-  .term{background:var(--term); border-radius:var(--radius); padding:0; overflow:hidden;
-    box-shadow:0 24px 60px -28px rgba(2,12,40,.45); border:1px solid #0a1530}
-  .term-bar{display:flex; gap:7px; align-items:center; padding:12px 14px; border-bottom:1px solid #15203f}
+  .term{background:#f1f5f9; border-radius:var(--radius); padding:0; overflow:hidden;
+    box-shadow:0 20px 40px -15px rgba(15, 23, 42, 0.15); border:1px solid #cbd5e1}
+  .term-bar{display:flex; gap:7px; align-items:center; padding:5.5px 14px; border-bottom:1px solid #cbd5e1}
   .term-bar .c{width:11px; height:11px; border-radius:50%}
   .term-bar .c.r{background:#ff5f57}.term-bar .c.y{background:#febc2e}.term-bar .c.g{background:#28c840}
-  .term-bar .t{margin-left:8px; color:var(--term-dim); font-size:12px}
-  .term-body{padding:16px 18px; height:340px; display:flex; flex-direction:column; font-size:12.5px; color:var(--term-ink)}
+  .term-bar .t{margin-left:8px; color:#475569; font-weight:500; font-size:12px}
+  .term-body{padding:16px 18px; height:343px; display:flex; flex-direction:column; font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--term-ink); background:#000000}
   #log{flex:1 1 auto; min-height:0; overflow-y:auto}
   #log::-webkit-scrollbar{width:8px}
   #log::-webkit-scrollbar-thumb{background:#1e2b50; border-radius:8px}
@@ -80,9 +87,10 @@
   section{padding:56px 0; border-bottom:1px solid var(--line)}
   section h2{font-size:26px; letter-spacing:-.01em; margin:0 0 8px}
   section .sub{color:var(--muted); margin:0 0 22px; max-width:60ch}
-  pre.code{background:#0b1020; color:#e2e8f0; padding:16px 18px; border-radius:12px; overflow:auto;
-    font-size:13.5px; line-height:1.6; margin:0}
-  pre.code .k{color:#7dd3fc}.pre .s{color:#86efac}
+  pre.code{background:#161b22; color:#e6edf3; padding:16px; border-radius:6px; overflow:auto;
+    font-size:13.5px; line-height:1.45; margin:16px 0; border:1px solid #30363d}
+  pre.code .k{color:#8b949e}
+  pre.code .s{color:#a5d6ff}
   .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:8px}
   .card{border:1px solid var(--line); border-radius:var(--radius); padding:20px}
   .card h3{margin:0 0 6px; font-size:16px}
@@ -91,6 +99,93 @@
   .note{font-size:13.5px; color:var(--muted); margin-top:12px}
   .kbd{font-family:ui-monospace,monospace; background:#f1f5f9; border:1px solid var(--line);
     border-bottom-width:2px; border-radius:6px; padding:2px 7px; font-size:13px}
+
+  /* PR comment mockup (GitHub Dark Theme) */
+  .pr-comment {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-top: 24px;
+    max-width: 800px;
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.4);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  .pr-comment-header {
+    background-color: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #8b949e;
+  }
+  .pr-comment-avatar { font-size: 15px; }
+  .pr-comment-name { color: #c9d1d9; font-weight: 600; }
+  .pr-comment-tag {
+    background: rgba(56, 139, 253, 0.15);
+    color: #58a6ff;
+    border: 1px solid rgba(56, 139, 253, 0.4);
+    border-radius: 99px;
+    padding: 0 8px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .pr-comment-body {
+    padding: 18px;
+    color: #c9d1d9;
+    font-size: 14px;
+  }
+  .pr-comment-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 14px;
+  }
+  .pr-comment-badge.fail {
+    background: rgba(248, 113, 113, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(248, 113, 113, 0.25);
+  }
+  .pr-comment-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  .pr-comment-table th, .pr-comment-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid #21262d;
+  }
+  .pr-comment-table th {
+    color: #8b949e;
+    font-weight: 500;
+    background: #161b22;
+  }
+  .pr-comment-findings {
+    margin-top: 14px;
+    font-size: 13.5px;
+    border-top: 1px solid #21262d;
+    padding-top: 14px;
+  }
+  .pr-comment-findings ul {
+    margin: 6px 0 0 0;
+    padding-left: 20px;
+    color: #8b949e;
+  }
+  .pr-comment-findings code {
+    background: #1f242c;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #c9d1d9;
+    font-size: 12.5px;
+  }
 
   footer{padding:34px 0 60px; color:var(--muted); font-size:14px}
   footer .row{display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap}
@@ -109,11 +204,29 @@
 <header>
   <div class="wrap">
     <nav>
-      <div class="brand"><span class="dot">🩺</span> compose-doctor</div>
+      <div class="brand">
+        <svg class="brand-logo" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <defs>
+            <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#0ea5a4" />
+              <stop offset="100%" stop-color="#3b82f6" />
+            </linearGradient>
+          </defs>
+          <circle cx="8" cy="3.5" r="1" fill="url(#logo-grad)" stroke="none" />
+          <circle cx="16" cy="3.5" r="1" fill="url(#logo-grad)" stroke="none" />
+          <path d="M8 4c0 3 2.5 5 4 6.5m4-6.5c0 3-2.5 5-4 6.5" />
+          <path d="M9.5 6c1.5 .5 3.5 .5 5 0" stroke-width="1.2" />
+          <path d="M12 10.5v1c0 3-4 3-4 6c0 2.5 3 3.5 5 2" />
+          <circle cx="15.5" cy="18.5" r="2.5" />
+          <path d="M15.5 17.5v2M14.5 18.5h2" stroke-width="1" />
+        </svg>
+        compose-doctor
+      </div>
       <div class="nav-links">
         <a href="#install">Install</a>
         <a href="#skill">Skill</a>
         <a href="#agent">Agent</a>
+        <a href="#gate">PR Gate</a>
         <a class="btn" href="https://github.com/rotemmiz/compose-doctor" target="_blank" rel="noopener">
           <svg class="gh" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
           GitHub
@@ -121,13 +234,12 @@
       </div>
     </nav>
   </div>
-</header>
-
-<div class="wrap">
+  <div class="wrap">
   <div class="hero">
     <div>
-      <h1>Your agent writes Jetpack&nbsp;Compose.<br>This scores&nbsp;it.</h1>
-      <p class="lead" style="margin-bottom:10px">A deterministic <strong>0–100 health score</strong> for Android Jetpack Compose —
+      <h1 style="font-size:52px; margin-bottom:8px">compose-doctor</h1>
+      <p style="font-size:20px; font-weight:600; line-height:1.3; color:var(--ink); margin:0 0 16px">Write. Score. Repeat. Your agent learns Compose the hard way, fast.</p>
+      <p class="lead" style="margin-bottom:12px">A deterministic <strong>0-100 health score</strong> for Android Jetpack Compose -
         powered by detekt&nbsp;+&nbsp;compose-rules. Gives a coding agent a structured fix loop, and gates your PRs.</p>
       <p style="font-size:13px; color:var(--muted); margin:0 0 26px">Inspired by
         <a href="https://www.react.doctor/" target="_blank" rel="noopener" style="color:var(--accent)">React Doctor</a>.</p>
@@ -142,7 +254,7 @@
 
     <div class="term" aria-hidden="true">
       <div class="term-bar"><span class="c r"></span><span class="c y"></span><span class="c g"></span>
-        <span class="t">your agent ▸ compose-doctor</span></div>
+        <span class="t">📁 agent ▸ compose-doctor</span></div>
       <div class="term-body">
         <div class="scorewrap">
           <span class="score" id="score">72</span>
@@ -154,7 +266,7 @@
       </div>
     </div>
   </div>
-</div>
+</header>
 
 <section id="install">
   <div class="wrap">
@@ -164,15 +276,15 @@
       compose-rules ruleset, scores the findings, and writes a machine-readable report.</p>
 <pre class="code"><span class="k">// build.gradle.kts</span>
 plugins {
-    id(<span style="color:#86efac">"dev.composedoctor"</span>) version <span style="color:#86efac">"0.1.0"</span>
+    id(<span style="color:#a5d6ff">"dev.composedoctor"</span>) version <span style="color:#a5d6ff">"0.1.0"</span>
 }
 
 <span class="k">// then:</span>
 $ ./gradlew composeDoctor
-<span class="muted" style="color:#7c8aa5">→ build/reports/compose-doctor/score.json   (score, byRule plan, findings)</span>
-<span class="muted" style="color:#7c8aa5">→ build/reports/detekt/detekt.sarif         (precise locations, code-scanning)</span></pre>
+<span class="muted" style="color:#8b949e">→ build/reports/compose-doctor/score.json   (score, byRule plan, findings)</span>
+<span class="muted" style="color:#8b949e">→ build/reports/detekt/detekt.sarif         (precise locations, code-scanning)</span></pre>
     <p class="note">Pre-release: until it's on the Gradle Plugin Portal, consume it from source via a
-      composite build — see <a href="https://github.com/rotemmiz/compose-doctor/blob/main/docs/TRY-IT-PLAYGROUND.md">TRY-IT-PLAYGROUND.md</a>.</p>
+      composite build - see <a href="https://github.com/rotemmiz/compose-doctor/blob/main/docs/TRY-IT-PLAYGROUND.md">TRY-IT-PLAYGROUND.md</a>.</p>
   </div>
 </section>
 
@@ -180,17 +292,17 @@ $ ./gradlew composeDoctor
   <div class="wrap">
     <div class="step">02 · AGENT SKILL</div>
     <h2>Run the <code>/compose-doctor</code> skill</h2>
-    <p class="sub">Drop the skill into your agent, then invoke it — it knows how to run the task, read the
+    <p class="sub">Drop the skill into your agent, then invoke it - it knows how to run the task, read the
       report, and fix the highest-value rule first. One skill, packaged for every major agent.</p>
-<pre class="code"><span class="k"># Claude Code — install from the marketplace</span>
+<pre class="code"><span class="k"># Claude Code - install from the marketplace</span>
 /plugin marketplace add rotemmiz/compose-doctor
 /plugin install compose-doctor@compose-doctor
 
-<span class="k"># Gemini CLI — install as an extension</span>
+<span class="k"># Gemini CLI - install as an extension</span>
 gemini extensions install https://github.com/rotemmiz/compose-doctor
 
-<span class="k"># Codex · OpenCode · Antigravity · Cursor — zero install</span>
-<span class="muted" style="color:#7c8aa5"># they auto-read AGENTS.md at the repo root</span>
+<span class="k"># Codex · OpenCode · Antigravity · Cursor - zero install</span>
+<span class="muted" style="color:#8b949e"># they auto-read AGENTS.md at the repo root</span>
 
 <span class="k"># then, in any Compose project:</span>
 /compose-doctor</pre>
@@ -209,7 +321,7 @@ gemini extensions install https://github.com/rotemmiz/compose-doctor
 <pre class="code"><span class="k"># prompt your agent:</span>
 "Run compose-doctor and raise the score by fixing the findings,
  one rule at a time. Verify the build still compiles, and don't
- suppress anything — fix the cause."</pre>
+ suppress anything - fix the cause."</pre>
     <div class="grid3">
       <div class="card"><h3>① Run</h3><p><code>./gradlew composeDoctor</code> → read <code>score.json</code>.</p></div>
       <div class="card"><h3>② Fix</h3><p>Take <code>byRule[0]</code> (best score-per-fix), clear every instance.</p></div>
@@ -220,12 +332,72 @@ gemini extensions install https://github.com/rotemmiz/compose-doctor
   </div>
 </section>
 
+<section id="gate">
+  <div class="wrap">
+    <div class="step">04 · PR GATE</div>
+    <h2>Reliable Pull Request Gates</h2>
+    <p class="sub">Integrates natively into GitHub Actions. Generates an automated markdown table to notify authors of remaining compose-rules violations and gate PR merges on a threshold.</p>
+    
+    <div class="pr-comment">
+      <div class="pr-comment-header">
+        <span class="pr-comment-avatar">🤖</span>
+        <span class="pr-comment-name">github-actions <span class="pr-comment-tag">bot</span></span>
+        <span class="pr-comment-time">commented 2 minutes ago</span>
+      </div>
+      <div class="pr-comment-body">
+        <div class="pr-comment-badge fail">❌ PR Gate Failed (85 / 100)</div>
+        <p><strong>compose-doctor</strong> evaluated this PR's Compose health score.</p>
+        <table class="pr-comment-table">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Score</th>
+              <th>Gate Threshold</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Compose Health</td>
+              <td><strong style="color:var(--amber)">85 / 100</strong> <span style="color:var(--green); font-size:12px; font-weight:600">(+13 delta)</span></td>
+              <td><strong>90 / 100</strong></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pr-comment-findings">
+          <strong>1 outstanding issue:</strong>
+          <ul>
+            <li><code>MutableStateParam</code> in <code>FeedScreen.kt:3</code> - Do not pass raw <code>MutableState</code> parameters.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <footer>
   <div class="wrap">
     <div class="row">
-      <div>🩺 <strong>compose-doctor</strong> — deterministic Compose health, for humans and agents.</div>
+      <div style="display:flex; align-items:center; gap:8px">
+        <svg class="brand-logo" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="url(#footer-logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <defs>
+            <linearGradient id="footer-logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#64748b" />
+              <stop offset="100%" stop-color="#94a3b8" />
+            </linearGradient>
+          </defs>
+          <circle cx="8" cy="3.5" r="1" fill="url(#footer-logo-grad)" stroke="none" />
+          <circle cx="16" cy="3.5" r="1" fill="url(#footer-logo-grad)" stroke="none" />
+          <path d="M8 4c0 3 2.5 5 4 6.5m4-6.5c0 3-2.5 5-4 6.5" />
+          <path d="M9.5 6c1.5 .5 3.5 .5 5 0" stroke-width="1.2" />
+          <path d="M12 10.5v1c0 3-4 3-4 6c0 2.5 3 3.5 5 2" />
+          <circle cx="15.5" cy="18.5" r="2.5" />
+          <path d="M15.5 17.5v2M14.5 18.5h2" stroke-width="1" />
+        </svg>
+        <strong>compose-doctor</strong> - deterministic Compose health, for humans and agents.
+      </div>
       <div>
         <a href="https://github.com/rotemmiz/compose-doctor">GitHub</a> ·
+        <a href="#gate">PR Gate</a> ·
         <a href="https://github.com/rotemmiz/compose-doctor/blob/main/docs/RULES.md">Rules</a> ·
         <a href="https://github.com/rotemmiz/compose-doctor/blob/main/docs/AGENT-HARNESS.md">Agent harness</a> ·
         <a href="https://github.com/rotemmiz/compose-doctor/blob/main/LICENSE">MIT</a>
@@ -276,15 +448,13 @@ gemini extensions install https://github.com/rotemmiz/compose-doctor
         setTimeout(function(){
           line('&nbsp;');
           line('<span class="ok">✔ '+steps[steps.length-1][2]+'/100 · GREAT</span> '
-               +'<span class="muted">— '+steps.length+' rules fixed by the agent</span>');
+               +'<span class="muted">- '+steps.length+' rules fixed by the agent</span>');
         },420);
         setTimeout(run, 4800);
         return;
       }
       var st=steps[i++];
-      // the AGENT edits the code...
-      line('<span class="agent">▸ agent</span> fixes <span>'+st[0]+'</span> <span class="muted">— '+st[1]+'</span>');
-      // ...then re-runs the tool, which reports the new score
+      line('<span class="agent">▸ agent</span> fixes <span>'+st[0]+'</span> <span class="muted">- '+st[1]+'</span>');
       setTimeout(function(){
         line('<span class="muted">$ ./gradlew composeDoctor →</span> '+st[2]+'/100 '
              +'<span class="ok">✓ cleared '+st[0]+'</span>');
