@@ -11,6 +11,20 @@ existing codebase and to **verify** Compose you just wrote.
 
 ## The fix loop
 
+0. **Find or bootstrap the task.** Check whether the `composeDoctor` task exists:
+   ```bash
+   ./gradlew tasks --all 2>/dev/null | grep -q composeDoctor && echo applied || echo missing
+   ```
+   - **applied** → just run it (step 1). The plugin is on the build (or wired via a composite build).
+   - **missing** → bootstrap it without editing any build file, using the bundled init script:
+     ```bash
+     ./gradlew --init-script "${CLAUDE_PLUGIN_ROOT:-.}/init/compose-doctor.init.gradle.kts" composeDoctor
+     ```
+     This resolves the plugin from the Gradle Plugin Portal (works once compose-doctor is
+     published). If resolution fails because it isn't published yet, fall back to applying the
+     plugin to the target module's `build.gradle.kts` (`plugins { id("dev.composedoctor") }`, or a
+     composite `includeBuild` of the compose-doctor checkout — see the project README) and re-run.
+
 1. **Run it.**
    ```bash
    ./gradlew composeDoctor          # whole project

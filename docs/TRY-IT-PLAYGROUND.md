@@ -129,9 +129,10 @@ composeDoctor { failBelow.set(80) }
 
 ## 6. Try the agent loop
 
-```bash
-cp -r skill/compose-doctor .claude/skills/compose-doctor
+```text
+/plugin marketplace add rotemmiz/compose-doctor   # then: /plugin install compose-doctor
 ```
+(or, without the marketplace: `cp -r skills/compose-doctor .claude/skills/compose-doctor`)
 
 Prompt: *"Run compose-doctor on the playground and raise the score by fixing the findings, one
 rule at a time. Verify the build still compiles, and don't suppress anything."* The agent should

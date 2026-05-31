@@ -1,0 +1,35 @@
+{
+  "name": "compose-doctor",
+  "owner": {
+    "name": "Rotem Meidan",
+    "url": "https://github.com/rotemmiz"
+  },
+  "metadata": {
+    "description": "compose-doctor — a deterministic health check and agent fix-loop for Jetpack Compose.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "compose-doctor",
+      "source": "./",
+      "description": "Score your Jetpack Compose code 0-100 and fix the findings iteratively. Wraps detekt + compose-rules; bundles the compose-doctor skill (self-bootstrapping) and a /compose-doctor command.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Rotem Meidan",
+        "url": "https://github.com/rotemmiz"
+      },
+      "homepage": "https://github.com/rotemmiz/compose-doctor",
+      "license": "MIT",
+      "category": "code-quality",
+      "keywords": [
+        "android",
+        "compose",
+        "jetpack-compose",
+        "detekt",
+        "compose-rules",
+        "static-analysis",
+        "code-quality"
+      ]
+    }
+  ]
+}

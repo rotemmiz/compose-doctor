@@ -10,7 +10,7 @@ All three plan phases are implemented and CI is green:
 
 - **Phase 1** — the plugin applies detekt + compose-rules, emits SARIF, scores it, and writes a
   machine-readable `score.json`. Verified against `playground/` (a deliberately-broken module).
-- **Phase 2** — agent skill at `skill/compose-doctor/SKILL.md` (run → read SARIF → fix loop).
+- **Phase 2** — agent skill at `skills/compose-doctor/SKILL.md` (run → read SARIF → fix loop).
 - **Phase 3** — `.github/workflows/compose-doctor.yml` is a reusable gate (uploads SARIF for
   code-scanning, posts a sticky PR score comment, fails below a threshold); `ci.yml` builds +
   tests + smoke-runs the playground; `pr-gate.yml` dogfoods the gate (report-only). Verified green
@@ -32,7 +32,11 @@ Gradle plugin only — no standalone CLI. The plugin orchestrates detekt as a ca
   - `dev.composedoctor.scoring` — pure, deterministic scoring function + model. Must be reproducible; cover with tests.
   - `dev.composedoctor.rulemap` — `ruleId → dimension` (+ docsUrl / fixHint) taxonomy, with a rule-set fallback. Data, not logic.
   - (`composeDoctorBaseline` and AGP `lint` are planned, not built.)
-- `skill/` — agent skill (`SKILL.md`): run task → read SARIF → fix one rule → re-run.
+- `skills/compose-doctor/` — agent skill (`SKILL.md`): find-or-bootstrap task → run → read SARIF →
+  fix one rule → re-run. Step 0 bootstraps via `init/compose-doctor.init.gradle.kts` if no task exists.
+- `.claude-plugin/` — Claude Code plugin + marketplace manifests, so the skill (and the
+  `/compose-doctor` command in `commands/`) install via `/plugin install compose-doctor`.
+- `init/` — `compose-doctor.init.gradle.kts`, the zero-touch init script the skill bootstraps with.
 - `.github/` — reusable GitHub Action running `./gradlew composeDoctor`.
 
 ## Scoring
