@@ -2,6 +2,7 @@
 
 [![ci](https://github.com/rotemmiz/compose-doctor/actions/workflows/ci.yml/badge.svg)](https://github.com/rotemmiz/compose-doctor/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Website](https://img.shields.io/badge/web-composedoctor.dev-0ea5a4)](https://composedoctor.dev)
 
 **A deterministic health check for Android Jetpack Compose — the [React Doctor](https://www.react.doctor/) idea, for Compose.**
 
@@ -104,6 +105,9 @@ composeDoctor {
 Then `./gradlew composeDoctor`. The plugin applies detekt, attaches the compose-rules ruleset
 (config bundled), enables SARIF, and scores it. Existing detekt machinery — `baseline.xml`,
 `detekt.yml`, `@Suppress` — applies as usual.
+
+> **Repositories:** your build needs `gradlePluginPortal()`, `mavenCentral()`, and `google()`
+> available — the plugin pulls detekt and the `io.nlopez.compose.rules` ruleset from them.
 
 ## CI
 
