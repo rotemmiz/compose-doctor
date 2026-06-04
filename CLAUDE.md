@@ -16,10 +16,12 @@ All three plan phases are implemented and CI is green:
   tests + smoke-runs the playground; `pr-gate.yml` dogfoods the gate (report-only). Verified green
   end-to-end (the sticky comment posts the current playground score).
 
-Publishing infra is wired but nothing is published: the plugin module applies
-`com.gradle.plugin-publish` with full metadata, `publishToMavenLocal` works, and
-`.github/workflows/release.yml` is a manual-only release (defaults to a credential-free dry run).
-To actually release: bump the version off `-SNAPSHOT` and add `GRADLE_PUBLISH_KEY`/`SECRET` secrets.
+**Published:** the plugin is live on the Gradle Plugin Portal as `dev.composedoctor` (current
+version `0.1.0`) — apply with `plugins { id("dev.composedoctor") version "0.1.0" }`. The module
+applies `com.gradle.plugin-publish` with full metadata; `.github/workflows/release.yml` is the
+manual release (defaults to a credential-free dry run; a real release needs `GRADLE_PUBLISH_KEY`/
+`SECRET` secrets). To cut a new version: `scripts/set-version.sh <x.y.z>` (no `-SNAPSHOT` — the
+Portal rejects it), then `scripts/check-version.sh` guards against drift across the manifests.
 
 Remaining follow-ups (non-blocking): android-lint wiring (a11y/security dimensions; needs the
 Android SDK) and a `composeDoctorBaseline` task to seed detekt's `baseline.xml`.

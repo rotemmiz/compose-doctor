@@ -283,8 +283,10 @@ plugins {
 $ ./gradlew composeDoctor
 <span class="muted" style="color:#8b949e">→ build/reports/compose-doctor/score.json   (score, byRule plan, findings)</span>
 <span class="muted" style="color:#8b949e">→ build/reports/detekt/detekt.sarif         (precise locations, code-scanning)</span></pre>
-    <p class="note">Pre-release: until it's on the Gradle Plugin Portal, consume it from source via a
-      composite build - see <a href="https://github.com/rotemmiz/compose-doctor/blob/main/docs/TRY-IT-PLAYGROUND.md">TRY-IT-PLAYGROUND.md</a>.</p>
+    <p class="note">Live on the <a href="https://plugins.gradle.org/plugin/dev.composedoctor">Gradle Plugin Portal</a>.
+      Run Gradle on JDK 17-21 (detekt can't analyze under JDK 22+). New to it? The
+      <a href="https://github.com/rotemmiz/compose-doctor/blob/main/docs/TRY-IT-PLAYGROUND.md">playground walkthrough</a>
+      runs the whole thing against a deliberately-broken app.</p>
   </div>
 </section>
 

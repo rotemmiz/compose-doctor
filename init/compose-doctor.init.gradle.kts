@@ -6,9 +6,9 @@
 //
 //   ./gradlew --init-script compose-doctor.init.gradle.kts composeDoctor
 //
-// Resolution: the plugin is pulled from the Gradle Plugin Portal. This works once compose-doctor
-// is published there. Until then, consume the plugin from source (composite build) — see the
-// project README "Use it in your project".
+// Resolution: the plugin is pulled from the Gradle Plugin Portal, where it's published as
+// `dev.composedoctor`. (To run against an unpublished local build instead, consume it from source
+// via a composite build — see the project README "Use it in your project".)
 //
 // Pin the version to keep scores comparable across runs (the score depends on the ruleset version).
 

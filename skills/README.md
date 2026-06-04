@@ -51,5 +51,5 @@ copy its contents into your agent instructions.
 The skill is **self-bootstrapping** (step 0 of its fix loop): it checks whether a `composeDoctor`
 task exists, and if not, runs the bundled init script (`init/compose-doctor.init.gradle.kts`) to
 apply the plugin without editing any build file — the `npx`-style zero-touch path. That init script
-resolves the plugin from the Gradle Plugin Portal, so it works once compose-doctor is published;
-until then the skill falls back to applying the `dev.composedoctor` plugin from source.
+resolves the plugin from the Gradle Plugin Portal, where it's published as `dev.composedoctor`. (To
+run against an unpublished local build, the skill can instead apply the plugin from source.)
