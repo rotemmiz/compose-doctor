@@ -20,10 +20,10 @@ existing codebase and to **verify** Compose you just wrote.
      ```bash
      ./gradlew --init-script "${CLAUDE_PLUGIN_ROOT:-.}/init/compose-doctor.init.gradle.kts" composeDoctor
      ```
-     This resolves the plugin from the Gradle Plugin Portal (works once compose-doctor is
-     published). If resolution fails because it isn't published yet, fall back to applying the
-     plugin to the target module's `build.gradle.kts` (`plugins { id("dev.composedoctor") }`, or a
-     composite `includeBuild` of the compose-doctor checkout — see the project README) and re-run.
+     This resolves the plugin (`dev.composedoctor`) from the Gradle Plugin Portal. If resolution
+     fails, fall back to applying the plugin to the target module's `build.gradle.kts`
+     (`plugins { id("dev.composedoctor") version "0.1.0" }`, or a composite `includeBuild` of a
+     compose-doctor checkout — see the project README) and re-run.
 
 1. **Run it.**
    ```bash

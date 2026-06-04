@@ -25,10 +25,10 @@ Use it whenever you write, review, or fix Compose code (`@Composable` functions,
      ```bash
      ./gradlew --init-script ./init/compose-doctor.init.gradle.kts composeDoctor
      ```
-     This resolves the plugin from the Gradle Plugin Portal (works once compose-doctor is
-     published). If resolution fails because it isn't published yet, fall back to applying
-     `plugins { id("dev.composedoctor") }` to the target module's `build.gradle.kts` (or a composite
-     `includeBuild` of the compose-doctor checkout — see the README) and re-run.
+     This resolves the plugin (`dev.composedoctor`) from the Gradle Plugin Portal. If resolution
+     fails, fall back to applying `plugins { id("dev.composedoctor") version "0.1.0" }` to the
+     target module's `build.gradle.kts` (or a composite `includeBuild` of a compose-doctor checkout
+     — see the README) and re-run.
 
 1. **Run it.**
    ```bash

@@ -10,9 +10,9 @@ Your agent writes Compose; this scores it. compose-doctor runs [detekt](https://
 [compose-rules](https://mrmans0n.github.io/compose-rules/) under the hood, then turns the findings
 into a single **0–100 health score**, a structured report an agent can fix against, and a CI/PR gate.
 
-> ⚠️ **Pre-release.** The scoring, the Gradle plugin, the agent skill, and the CI workflows all
-> work and are covered by tests, but the plugin is **not yet published** to the Gradle Plugin
-> Portal. For now you consume it from source (see [Try it](#try-it)).
+> ✅ **Published.** The plugin is live on the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/dev.composedoctor)
+> as `dev.composedoctor` — apply it with `plugins { id("dev.composedoctor") version "0.1.0" }`
+> (see [Use it in your project](#use-it-in-your-project)).
 
 ## Why
 
@@ -83,14 +83,13 @@ Outputs:
 
 ## Use it in your project
 
-> Once published this will be `plugins { id("dev.composedoctor") version "<x.y.z>" }`. Until then,
-> add the build as a composite (`includeBuild`) — see `playground/settings.gradle.kts` for the
-> exact pattern.
+The plugin is on the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/dev.composedoctor) —
+apply it by id and pin the version (pinning keeps scores comparable across runs):
 
 ```kotlin
 // build.gradle.kts of a module with Compose source
 plugins {
-    id("dev.composedoctor")
+    id("dev.composedoctor") version "0.1.0"
 }
 
 composeDoctor {
@@ -108,6 +107,10 @@ Then `./gradlew composeDoctor`. The plugin applies detekt, attaches the compose-
 
 > **Repositories:** your build needs `gradlePluginPortal()`, `mavenCentral()`, and `google()`
 > available — the plugin pulls detekt and the `io.nlopez.compose.rules` ruleset from them.
+>
+> **JDK:** run Gradle on **JDK 17–21**. detekt (1.23.x) can't analyze under a JDK newer than 22, so
+> a daemon on JDK 22+ fails the `:detekt` task — pin Gradle's JVM (`org.gradle.java.home`) if your
+> default JDK is newer.
 
 ## CI
 
@@ -166,7 +169,7 @@ and reporting.
 
 ## Roadmap
 
-- Publish to the Gradle Plugin Portal.
+- ~~Publish to the Gradle Plugin Portal.~~ ✅ live as [`dev.composedoctor`](https://plugins.gradle.org/plugin/dev.composedoctor).
 - Wire **android-lint** to populate the Security/Accessibility dimensions.
 - `composeDoctorBaseline` task to seed detekt's `baseline.xml`.
 
