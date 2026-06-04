@@ -127,7 +127,10 @@ jobs:
       fail-below: 75
 ```
 
-It comments a sticky **🩺 compose-doctor — NN/100** summary on the PR.
+It posts a sticky score comment on the PR — a health badge, the headline score, the top outstanding
+findings (with file:line and a fix hint), and a per-dimension breakdown:
+
+![compose-doctor's sticky PR score comment](docs/img/pr-score-comment.png)
 
 ## Agent skill
 
