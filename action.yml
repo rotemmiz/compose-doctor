@@ -1,0 +1,23 @@
+name: 'compose-doctor'
+description: 'Deterministic 0-100 health score & sticky PR comment gate for Android Jetpack Compose'
+author: 'Rotem Meidan'
+branding:
+  icon: 'check-circle'
+  color: 'green'
+inputs:
+  gradle-args:
+    description: 'Gradle task arguments to execute'
+    required: false
+    default: 'composeDoctor'
+  fail-below:
+    description: 'Fail build if health score is below threshold (0-100)'
+    required: false
+    default: '75'
+runs:
+  using: 'composite'
+  steps:
+    - name: Run compose-doctor workflow
+      uses: rotemmiz/compose-doctor/.github/workflows/compose-doctor.yml@main
+      with:
+        gradle-args: ${{ inputs.gradle-args }}
+        fail-below: ${{ inputs.fail-below }}

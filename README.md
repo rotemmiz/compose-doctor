@@ -1,5 +1,8 @@
 # compose-doctor
 
+[![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/dev.composedoctor?color=0ea5a4&logo=gradle)](https://plugins.gradle.org/plugin/dev.composedoctor)
+[![Claude Code Plugin](https://img.shields.io/badge/Claude%20Code-Plugin-7c3aed?logo=anthropic)](https://github.com/rotemmiz/compose-doctor)
+[![Gemini CLI Extension](https://img.shields.io/badge/Gemini%20CLI-Extension-4285f4?logo=google)](https://github.com/rotemmiz/compose-doctor)
 [![ci](https://github.com/rotemmiz/compose-doctor/actions/workflows/ci.yml/badge.svg)](https://github.com/rotemmiz/compose-doctor/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Website](https://img.shields.io/badge/web-composedoctor.dev-0ea5a4)](https://composedoctor.dev)
@@ -131,6 +134,14 @@ It posts a sticky score comment on the PR — a health badge, the headline score
 findings (with file:line and a fix hint), and a per-dimension breakdown:
 
 ![compose-doctor's sticky PR score comment](docs/img/pr-score-comment.png)
+
+### Repo Health Badge
+
+Showcase your project's Compose health score in your README:
+
+```markdown
+[![Compose Doctor](https://img.shields.io/badge/Compose%20Doctor-75%2B%20Great-10b981?logo=android)](https://github.com/rotemmiz/compose-doctor)
+```
 
 ## Agent skill
 
