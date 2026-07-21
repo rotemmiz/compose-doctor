@@ -38,7 +38,7 @@ Below is the complete set of formatted, copy-paste ready launch posts for every 
 
 ### Tweet 5 (Try it in 30 Seconds)
 > Try it right now on the built-in playground feed app:
-> `git clone https://github.com/rotemmiz/compose-doctor && ./gradlew -p playground composeDoctor`
+> `git clone git@github.com:rotemmiz/compose-doctor.git && cd compose-doctor && ./gradlew -p playground composeDoctor`
 > 
 > Star the repo ⭐️ and let us know what you think!
 
@@ -59,7 +59,7 @@ compose-doctor fills that gap:
 Built as a single Gradle plugin (`dev.composedoctor`), live on the Gradle Plugin Portal!
 
 Try it in 30 seconds:
-$ git clone https://github.com/rotemmiz/compose-doctor && ./gradlew -p playground composeDoctor
+$ git clone git@github.com:rotemmiz/compose-doctor.git && cd compose-doctor && ./gradlew -p playground composeDoctor
 
 Website: https://composedoctor.dev
 GitHub: https://github.com/rotemmiz/compose-doctor
@@ -96,7 +96,7 @@ Compose linting rules exist (`detekt` + `compose-rules`), but they've been unbun
 The repo includes a deliberately-flawed playground feed app:
 
 ```bash
-git clone https://github.com/rotemmiz/compose-doctor && cd compose-doctor
+git clone git@github.com:rotemmiz/compose-doctor.git && cd compose-doctor
 ./gradlew -p playground composeDoctor
 ```
 
@@ -228,7 +228,7 @@ When an agent runs `./gradlew composeDoctor`:
 Try it on the included playground app:
 
 ```bash
-git clone https://github.com/rotemmiz/compose-doctor && cd compose-doctor
+git clone git@github.com:rotemmiz/compose-doctor.git && cd compose-doctor
 ./gradlew -p playground composeDoctor
 ```
 

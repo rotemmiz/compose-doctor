@@ -49,7 +49,7 @@ The repo ships a deliberately-flawed [`playground/`](playground) feed app, wired
 source via a composite build. With JDK 21:
 
 ```bash
-git clone https://github.com/rotemmiz/compose-doctor && cd compose-doctor
+git clone git@github.com:rotemmiz/compose-doctor.git && cd compose-doctor
 ./gradlew -p playground composeDoctor
 ```
 

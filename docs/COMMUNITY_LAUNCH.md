@@ -58,7 +58,7 @@ This document contains ready-to-use copy and templates for launching `compose-do
 
 ### Tweet 5 (Try it in 30 Seconds)
 > Try it right now on the built-in playground feed app:
-> `git clone https://github.com/rotemmiz/compose-doctor && ./gradlew -p playground composeDoctor`
+> `git clone git@github.com:rotemmiz/compose-doctor.git && cd compose-doctor && ./gradlew -p playground composeDoctor`
 >
 > Star the repo ⭐️ and let us know what you think!
 
@@ -83,7 +83,7 @@ This document contains ready-to-use copy and templates for launching `compose-do
   >
   > **Try it:**
   > ```bash
-  > git clone https://github.com/rotemmiz/compose-doctor && ./gradlew -p playground composeDoctor
+  > git clone git@github.com:rotemmiz/compose-doctor.git && cd compose-doctor && ./gradlew -p playground composeDoctor
   > ```
   >
   > Check it out at [composedoctor.dev](https://composedoctor.dev) or [GitHub](https://github.com/rotemmiz/compose-doctor). Feedback and contributions welcome!
