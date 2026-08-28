@@ -33,7 +33,7 @@ Real excerpt from the playground's first run (trimmed):
 ```json
 {
   "schemaVersion": 1,
-  "rulesetVersion": "compose-rules 0.4.22 · detekt 1.23.7",
+  "rulesetVersion": "compose-rules 0.4.22 · detekt 1.23.8",
   "status": "ok",                       // "ok" | "below_gate"
   "score": 72,
   "label": "NEEDS_WORK",                // 75+ GREAT · 50-74 NEEDS_WORK · <50 CRITICAL
