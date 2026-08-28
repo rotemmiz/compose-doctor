@@ -9,15 +9,154 @@ inputs:
     description: 'Gradle task arguments to execute'
     required: false
     default: 'composeDoctor'
+  report-json:
+    description: 'Path to the score JSON the task writes'
+    required: false
+    default: 'build/reports/compose-doctor/score.json'
+  sarif:
+    description: 'Path to the detekt SARIF report to upload for code scanning'
+    required: false
+    default: 'build/reports/detekt/detekt.sarif'
   fail-below:
-    description: 'Fail build if health score is below threshold (0-100)'
+    description: 'Fail build if health score is below threshold (0-100, 0 = never)'
     required: false
     default: '75'
 runs:
   using: 'composite'
   steps:
-    - name: Run compose-doctor workflow
-      uses: rotemmiz/compose-doctor/.github/workflows/compose-doctor.yml@main
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
       with:
-        gradle-args: ${{ inputs.gradle-args }}
-        fail-below: ${{ inputs.fail-below }}
+        distribution: temurin
+        java-version: '21'
+
+    - name: Set up Gradle
+      uses: gradle/actions/setup-gradle@v4
+
+    - name: Run compose-doctor
+      shell: bash
+      run: ./gradlew ${{ inputs.gradle-args }}
+
+    - name: Upload SARIF to code scanning
+      if: always() && hashFiles(inputs.sarif) != ''
+      continue-on-error: true
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.sarif }}
+
+    - name: Post score comment
+      if: always() && github.event_name == 'pull_request' && hashFiles(inputs.report-json) != ''
+      uses: actions/github-script@v7
+      env:
+        REPORT_JSON: ${{ inputs.report-json }}
+        GATE: ${{ inputs.fail-below }}
+      with:
+        script: |
+          const fs = require('fs');
+          const marker = '<!-- compose-doctor -->';
+          const r = JSON.parse(fs.readFileSync(process.env.REPORT_JSON, 'utf8'));
+          const gate = Number(process.env.GATE || 0);
+
+          const gated = gate > 0;
+          const passed = !gated || r.score >= gate;
+          const enc = s => encodeURIComponent(s).replace(/-/g, '--').replace(/%20/g, '_');
+          const verdict = gated ? `PR Gate ${passed ? 'Passed' : 'Failed'}` : 'compose-doctor';
+          const color = gated
+            ? (passed ? 'brightgreen' : 'red')
+            : (r.score >= 75 ? 'brightgreen' : (r.score >= 50 ? 'orange' : 'red'));
+          const badge = `https://img.shields.io/badge/${enc(verdict)}-${enc(r.score + ' / 100')}-${color}`;
+          const badgeAlt = `${verdict} — ${r.score} / 100`;
+
+          let delta = '';
+          if (r.delta && typeof r.delta.score === 'number') {
+            const d = r.delta.score;
+            delta = ` _(${d >= 0 ? '+' : ''}${d} delta)_`;
+          }
+
+          const scoreCell = `**${r.score} / 100**${delta}`;
+          const table = gated
+            ? [
+                '| Metric | Score | Gate Threshold |',
+                '|---|---|---|',
+                `| Compose Health | ${scoreCell} | **${gate} / 100** |`,
+              ]
+            : [
+                '| Metric | Score |',
+                '|---|---|',
+                `| Compose Health | ${scoreCell} |`,
+              ];
+
+          const docs = {}, hints = {};
+          for (const ru of r.byRule || []) {
+            if (ru.docsUrl) docs[ru.ruleId] = ru.docsUrl;
+            if (ru.fixHint) hints[ru.ruleId] = ru.fixHint;
+          }
+          const rank = { ERROR: 0, WARNING: 1, INFO: 2 };
+          const findings = (r.findings || []).slice().sort((a, b) =>
+            (rank[a.severity] ?? 9) - (rank[b.severity] ?? 9) ||
+            a.file.localeCompare(b.file) || a.line - b.line);
+          const cap = 10;
+          const issues = [];
+          if (findings.length) {
+            const noun = findings.length === 1 ? 'outstanding issue' : 'outstanding issues';
+            issues.push(`**${findings.length} ${noun}:**`, '');
+            for (const f of findings.slice(0, cap)) {
+              const rule = docs[f.ruleId]
+                ? `[\`${f.ruleId}\`](${docs[f.ruleId]})`
+                : `\`${f.ruleId}\``;
+              const msg = (hints[f.ruleId] || f.message.replace(/\s*See https?:\/\/\S+.*$/i, ''))
+                .replace(/\s+/g, ' ').trim();
+              issues.push(`- ${rule} in \`${f.file}:${f.line}\` — ${msg}`);
+            }
+            if (findings.length > cap) issues.push(`- …and ${findings.length - cap} more.`);
+          } else {
+            issues.push('**No outstanding issues.** Nice work.');
+          }
+
+          const dims = Object.entries(r.dimensions)
+            .map(([k, v]) => `| ${k} | ${v}/100 |`).join('\n');
+
+          const body = [
+            marker,
+            `![${badgeAlt}](${badge})`,
+            '',
+            `**compose-doctor** evaluated this PR's Compose health score.`,
+            '',
+            ...table,
+            '',
+            ...issues,
+            '',
+            '<details><summary>Score by dimension</summary>',
+            '',
+            '| Dimension | Score |',
+            '|---|---|',
+            dims,
+            '',
+            `Unique error rules: **${r.uniqueErrorRules}** · `
+              + `warning rules: **${r.uniqueWarningRules}** · `
+              + `total findings: **${r.totalFindings}**`,
+            '</details>',
+          ].join('\n');
+
+          const { owner, repo } = context.repo;
+          const issue_number = context.issue.number;
+          const { data: comments } =
+            await github.rest.issues.listComments({ owner, repo, issue_number });
+          const existing = comments.find(c => c.body && c.body.includes(marker));
+          if (existing) {
+            await github.rest.issues.updateComment(
+              { owner, repo, comment_id: existing.id, body });
+          } else {
+            await github.rest.issues.createComment({ owner, repo, issue_number, body });
+          }
+
+    - name: Enforce score gate
+      if: always() && inputs.fail-below > 0 && hashFiles(inputs.report-json) != ''
+      shell: bash
+      run: |
+        score=$(jq -r '.score' "${{ inputs.report-json }}")
+        echo "compose-doctor score: $score (gate: ${{ inputs.fail-below }})"
+        if [ "$score" -lt "${{ inputs.fail-below }}" ]; then
+          echo "::error::compose-doctor score $score is below ${{ inputs.fail-below }}"
+          exit 1
+        fi
