@@ -105,6 +105,6 @@ class ComposeDoctorPlugin : Plugin<Project> {
 
     companion object {
         const val COMPOSE_RULES_VERSION = "0.4.22"
-        const val DETEKT_VERSION = "1.23.7"
+        const val DETEKT_VERSION = "1.23.8"
     }
 }

@@ -1,9 +1,9 @@
 [versions]
-kotlin = "2.1.0"
-detekt = "1.23.7"
+kotlin = "2.1.21"
+detekt = "1.23.8"
 composeRules = "0.4.22"
 junit = "5.11.4"
-kotlinxSerialization = "1.7.3"
+kotlinxSerialization = "1.8.1"
 
 [libraries]
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
