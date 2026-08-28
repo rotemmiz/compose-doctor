@@ -1,7 +1,7 @@
 {
   "name": "compose-doctor",
   "description": "Deterministic 0-100 health score and agent fix-loop for Android Jetpack Compose, wrapping detekt + compose-rules. Bundles the compose-doctor skill and the /compose-doctor command.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": {
     "name": "Rotem Meidan",
     "url": "https://github.com/rotemmiz"

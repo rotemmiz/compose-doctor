@@ -17,7 +17,7 @@ initscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath("dev.composedoctor:dev.composedoctor.gradle.plugin:0.1.0")
+        classpath("dev.composedoctor:dev.composedoctor.gradle.plugin:0.2.0")
     }
 }
 
